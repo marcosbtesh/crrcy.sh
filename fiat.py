@@ -16,7 +16,6 @@ class Fiat:
         pass
 
     async def get_rates(self):
-
         # Firstly we check the cache
         cached_data = get_cache(self.CACHE_KEY)
 
