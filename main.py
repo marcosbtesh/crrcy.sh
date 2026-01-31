@@ -150,11 +150,11 @@ async def get_historical_rates(query):
 
     step = 1
     if days > 365:
-        step = 120
-    elif days > 90:
         step = 30
-    elif days > 30:
+    elif days > 90:
         step = 10
+    elif days > 30:
+        step = 1
 
     if len(parts) > 3:
         try:
