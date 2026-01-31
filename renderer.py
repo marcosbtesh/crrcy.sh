@@ -18,6 +18,7 @@ class Colors:
     MAGENTA = "\033[35m"
     CYAN = "\033[36m"
     WHITE = "\033[37m"
+    ORANGE = "\033[38;2;255;165;0m"
 
     BRIGHT_GREEN = "\033[92m"
     BRIGHT_YELLOW = "\033[93m"
@@ -66,13 +67,16 @@ def render_table(data: dict):
 
     sorted_data = sorted(data.items())
 
+    # print(sorted_data)
+
     for iso, rate in sorted_data:
         color = Colors.CYAN
         if iso == "USD":
             color = Colors.GREEN
         if iso == "EUR":
             color = Colors.YELLOW
-
+        if iso == "BTC":
+            color = Colors.ORANGE
         try:
             rate_str = f"{rate:,.4f}"
         except (ValueError, TypeError):
