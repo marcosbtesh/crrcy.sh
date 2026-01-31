@@ -45,23 +45,42 @@ class Currency:
             return cached_batch
 
         try:
-            response = self.client.latest(currencies=missing, base_currency=base)
-            raw_rates = response.get("data", {})
-
-            should_invert_crypto = not is_crypto_base and any(
-                self.checker.check_which_type_of_currency(s) == "CRYPTO"
+            missing_crypto = [
+                s
                 for s in missing
-            )
+                if self.checker.check_which_type_of_currency(s) == "CRYPTO"
+            ]
+            missing_fiat = [
+                s
+                for s in missing
+                if self.checker.check_which_type_of_currency(s) == "FIAT"
+            ]
 
             new_rates = {}
-            for iso, val in self._normalize_rates(raw_rates, invert=False).items():
-                if (
-                    should_invert_crypto
-                    and self.checker.check_which_type_of_currency(iso) == "CRYPTO"
-                ):
-                    new_rates[iso] = 1 / val if val != 0 else val
-                else:
-                    new_rates[iso] = val
+
+            if missing_crypto:
+                response = self.client.latest(
+                    currencies=missing_crypto, base_currency=base
+                )
+                raw_rates = response.get("data", {})
+
+                for iso, val in self._normalize_rates(raw_rates, invert=False).items():
+                    if not is_crypto_base:
+                        new_rates[iso] = 1 / val if val != 0 else val
+                    else:
+                        new_rates[iso] = val
+
+            if missing_fiat:
+                response = self.client.latest(
+                    currencies=missing_fiat, base_currency=base
+                )
+                raw_rates = response.get("data", {})
+
+                for iso, val in self._normalize_rates(raw_rates, invert=False).items():
+                    if is_crypto_base:
+                        new_rates[iso] = 1 / val if val != 0 else val
+                    else:
+                        new_rates[iso] = val
 
             set_cache_batch(new_rates, prefix=prefix, expire_hours=cache_expire_hours)
             cached_batch.update(new_rates)
