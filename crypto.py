@@ -12,7 +12,7 @@ class Crypto:
     def __init__(self) -> None:
         self.CACHE_PREFIX = "crypto"
         self.client = Coingecko(
-            demo_api_key=os.getenv("COINGECKO_API_KEY"),
+            demo_api_key=os.getenv("CRYPTO_COINGECKO_API_KEY"),
             environment="demo",
         )
 
