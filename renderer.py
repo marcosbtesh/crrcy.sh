@@ -233,7 +233,7 @@ def _render_graph_footer(last_updated, start_date, end_date, min_val, max_val):
     footer_lines = []
     footer_lines.append(f"{Colors.DIM}{'-' * width}{Colors.RESET}")
 
-    col_width = width // 5
+    col_width = width // 3
 
     l_col = f"Start: {start_str}"
     m_col = f"Updated: {last_updated}"
