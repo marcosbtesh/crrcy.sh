@@ -4,6 +4,7 @@ import dotenv
 from flask import Flask, Response, jsonify, request
 
 import renderer
+from cache import check_rate_limit
 from currency import Currency
 
 dotenv.load_dotenv()
@@ -25,9 +26,42 @@ def parse_path_args(arg_str):
     ]
 
 
+def get_client_ip():
+    forwarded_for = request.headers.get("X-Forwarded-For")
+    if forwarded_for:
+        return forwarded_for.split(",")[0].strip()
+    return request.remote_addr
+
+
+def check_request_rate_limit():
+    client_ip = get_client_ip() or "unknown"
+
+    rate_limit = check_rate_limit(
+        ip_address=client_ip,
+        max_requests=35,
+        window_minutes=1,
+        block_duration_minutes=60,
+    )
+
+    if not rate_limit["allowed"]:
+        if is_curl_client():
+            return Response(
+                f"{renderer.Colors.RED}{rate_limit['message']}{renderer.Colors.RESET}\n",
+                status=429,
+            )
+        return jsonify({"error": rate_limit["message"]}), 429
+
+    return None
+
+
 @app.route("/", defaults={"query": None})
 @app.route("/<path:query>")
 async def get_rates(query):
+
+    rate_limit_response = check_request_rate_limit()
+    if rate_limit_response:
+        return rate_limit_response
+
     if query is None or query.lower() in ["usage", "help", "info"]:
         if is_curl_client():
             output = renderer.render_usage()
@@ -81,6 +115,11 @@ async def get_rates(query):
 @app.route("/historical/<path:query>")
 @app.route("/last/<path:query>")
 async def get_historical_rates(query):
+
+    rate_limit_response = check_request_rate_limit()
+    if rate_limit_response:
+        return rate_limit_response
+
     parts = query.split("/")
     if len(parts) < 3:
         return (
