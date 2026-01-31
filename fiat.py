@@ -1,61 +1,49 @@
 import os
 
 import freecurrencyapi
-import requests
 from dotenv import load_dotenv
 
-from cache import get_cache, set_cache
+from cache import get_cache_batch, set_cache_batch
 
 load_dotenv()
 
 
 class Fiat:
     def __init__(self) -> None:
-        self.CACHE_KEY = "fiat_rates"
+        self.CACHE_PREFIX = "fiat"
         self.client = freecurrencyapi.Client(os.getenv("FIAT_FREE_CURRENCY_API_KEY"))
-        pass
-
-    async def get_rates(self):
-        # Firstly we check the cache
-        cached_data = get_cache(self.CACHE_KEY)
-
-        if cached_data:
-            return cached_data
-
-        response = self.client.currencies()
-
-        rates = response["data"]
-
-        set_cache(self.CACHE_KEY, rates)
-
-        return rates
 
     async def get_latest(self):
-        cached_data = get_cache(self.CACHE_KEY)
-
-        if cached_data:
-            return cached_data
-
         response = self.client.latest()
+        rates = response.get("data", {})
 
-        rates = response["data"]
-
-        set_cache(self.CACHE_KEY, rates)
+        set_cache_batch(rates, prefix=self.CACHE_PREFIX)
 
         return rates
 
     async def get_iso_rate(self, isos: list[str]):
         print(f"Getting rates for {isos}")
 
-        cached_data = get_cache(self.CACHE_KEY)
+        cached_batch = get_cache_batch(isos, prefix=self.CACHE_PREFIX)
 
-        if cached_data:
-            return cached_data
+        missing_isos = [iso for iso, val in cached_batch.items() if val is None]
 
-        response = self.client.currencies(currencies=[isos])
+        if not missing_isos:
+            return cached_batch
 
-        rates = response["data"]
+        print(f"Fetching missing from API: {missing_isos}")
+        try:
+            response = self.client.latest(currencies=missing_isos)
+            new_rates = response.get("data", {})
 
-        set_cache(self.CACHE_KEY, rates)
+            set_cache_batch(new_rates, prefix=self.CACHE_PREFIX)
 
-        return rates
+            cached_batch.update(new_rates)
+        except Exception as e:
+            print(f"API Error: {e}")
+            pass
+
+        return cached_batch
+
+    async def get_rates(self):
+        return await self.get_latest()
