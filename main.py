@@ -73,26 +73,49 @@ async def get_historical_rates(query):
     time_str = parts[2].lower()
 
     days = 0
-
     if time_str.endswith("d"):
         days = int(time_str[:-1])
     elif time_str.endswith("m"):
         days = int(time_str[:-1]) * 30
+    elif time_str.endswith("y"):
+        days = int(time_str[:-1]) * 365
     else:
         try:
             days = int(time_str)
         except ValueError:
             return jsonify({"error": "Invalid time format"}), 400
 
-    target_date = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d")
+    step = 1
+    if days > 365:  # > 1 Year
+        step = 120
+    elif days > 90:  # > 3 Months
+        step = 30
+    elif days > 30:  # > 1 Month
+        step = 10
+
+    # Optional: Override via query param for explicit control
+    # step = int(request.args.get('step', step))
+
+    end_dt = datetime.now()
+    start_dt = end_dt - timedelta(days=days)
 
     try:
-        data = await currency_service.get_historical_rates(
-            base=base, symbols=[target], date=target_date
+        data = await currency_service.get_timeseries_data(
+            base=base,
+            target=target,
+            start_date=start_dt,
+            end_date=end_dt,
+            step=step,
         )
 
         if is_curl_client():
-            output = renderer.render_graph(data, start_date, end_date)
+            output = renderer.render_graph(
+                data, start_dt.strftime("%Y-%m-%d"), end_dt.strftime("%Y-%m-%d")
+            )
+            return Response(output, mimetype="text/plain")
+
+        return jsonify(data)
+
     except Exception as e:
         if is_curl_client():
             return Response(f"Error: {str(e)}\n", status=500)

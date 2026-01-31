@@ -1,6 +1,7 @@
 import math
 import shutil
 from datetime import datetime, timedelta
+from typing import Any, Union, cast
 
 
 class Colors:
@@ -155,7 +156,7 @@ def render_graph(data: dict, start_date, end_date):
             val = info["value"] if isinstance(info, dict) and "value" in info else info
 
             dt = datetime.strptime(date_str, "%Y-%m-%d")
-
+            val = cast(Union[str, float, int], val)
             points.append((dt, float(val)))
 
         except (ValueError, TypeError):
