@@ -74,6 +74,17 @@ class Currency:
                 if self.checker.check_which_type_of_currency(s) == "FIAT"
             ]
 
+            unknown_currencies = [
+                s
+                for s in missing
+                if self.checker.check_which_type_of_currency(s) == "UNKNOWN"
+            ]
+
+            if unknown_currencies:
+                print(
+                    f"Warning: Unknown currencies requested (will not query API): {unknown_currencies}"
+                )
+
             new_rates = {}
 
             if missing_crypto:
