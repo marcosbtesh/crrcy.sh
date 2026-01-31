@@ -90,6 +90,9 @@ async def get_historical_rates(query):
         data = await currency_service.get_historical_rates(
             base=base, symbols=[target], date=target_date
         )
+
+        if is_curl_client():
+            output = renderer.render_graph(data, start_date, end_date)
     except Exception as e:
         if is_curl_client():
             return Response(f"Error: {str(e)}\n", status=500)

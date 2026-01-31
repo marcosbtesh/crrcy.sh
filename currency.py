@@ -95,7 +95,7 @@ class Currency:
 
         return cached_batch
 
-    async def get_historical_rates(self, base: str, symbols: list[str], date: datetime):
+    async def get_historical_rates(self, base: str, symbols: list[str], date: str):
         base = base.upper()
 
         key = f"{self.CACHE_PREFIX_HISTORICAL}:{date}:{base}:{symbols}"

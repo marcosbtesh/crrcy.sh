@@ -45,6 +45,11 @@ def render_header(title, subtitle=None):
     return "\n".join(output)
 
 
+def render_footer():
+    # TODO: Implement footer rendering here
+    print("")
+
+
 def render_fiat_table(data: dict):
 
     lines = []
@@ -80,46 +85,5 @@ def render_fiat_table(data: dict):
     return "\n".join(lines) + "\n"
 
 
-# def render_crypto_table(data: dict):
-#     lines = []
-#     lines.append(render_header("CRYPTO MARKET", "Real-time Prices"))
-#     lines.append("")
-
-#     if not data:
-#         return f"{Colors.RED}No data available.{Colors.RESET}"
-
-#     first_coin = list(data.values())[0]
-#     vs_currencies = list(first_coin.keys())
-
-#     col_width = 15
-#     name_width = 15
-
-#     header_str = f"{'COIN':<{name_width}}"
-#     for vs in vs_currencies:
-#         header_str += f"{vs.upper():>{col_width}}"
-
-#     lines.append(
-#         center_text(f"{Colors.BOLD}{Colors.UNDERLINE}{header_str}{Colors.RESET}")
-#     )
-
-#     for coin, prices in data.items():
-#         row_str = (
-#             f"{Colors.BRIGHT_YELLOW}{coin.capitalize():<{name_width}}{Colors.RESET}"
-#         )
-
-#         for vs in vs_currencies:
-#             price = prices.get(vs, 0)
-#             if price < 1:
-#                 p_str = f"{price:.6f}"
-#             else:
-#                 p_str = f"{price:,.2f}"
-
-#             row_str += f"{Colors.WHITE}{p_str:>{col_width}}{Colors.RESET}"
-
-#         lines.append(center_text(row_str))
-
-#     lines.append("")
-#     # lines.append(
-#     #     f"{Colors.DIM}Usage: curl host/crypto?coins=btc,eth&vs=usd,eur{Colors.RESET}"
-#     # )
-#     return "\n".join(lines) + "\n"
+def render_graph(data: dict, start_date, end_date):
+    print("Imlement render graph here")
