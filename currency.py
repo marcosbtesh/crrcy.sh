@@ -26,6 +26,7 @@ class Currency:
     async def get_rates(self, symbols: list[str] | None = None, base: str = "USD"):
         base = base.upper()
         is_crypto_base = self.checker.check_which_type_of_currency(base) == "CRYPTO"
+        cache_expire_hours = 2 if is_crypto_base else 6
 
         prefix = f"{self.CACHE_PREFIX}:{base}"
 
@@ -34,7 +35,7 @@ class Currency:
             response = self.client.latest(base_currency=api_base)
             raw_rates = response.get("data", {})
             rates = self._normalize_rates(raw_rates, invert=is_crypto_base)
-            set_cache_batch(rates, prefix=prefix)
+            set_cache_batch(rates, prefix=prefix, expire_hours=cache_expire_hours)
             return rates
 
         cached_batch = get_cache_batch(symbols, prefix=prefix)
@@ -62,7 +63,7 @@ class Currency:
                 else:
                     new_rates[iso] = val
 
-            set_cache_batch(new_rates, prefix=prefix)
+            set_cache_batch(new_rates, prefix=prefix, expire_hours=cache_expire_hours)
             cached_batch.update(new_rates)
 
         except Exception as e:
