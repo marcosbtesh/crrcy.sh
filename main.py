@@ -108,6 +108,18 @@ async def get_historical_rates(query):
         except (ValueError, IndexError):
             pass
 
+    max_data_points = 365
+    estimated_points = days // step if step > 0 else days
+    if estimated_points > max_data_points:
+        return (
+            jsonify(
+                {
+                    "error": f"Requested data points ({estimated_points}) exceeds maximum ({max_data_points}). Increase step value or reduce time range"
+                }
+            ),
+            400,
+        )
+
     end_dt = datetime.now()
     start_dt = end_dt - timedelta(days=days)
 
