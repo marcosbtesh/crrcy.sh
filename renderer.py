@@ -88,6 +88,118 @@ def render_fiat_table(data: dict):
     return "\n".join(lines) + "\n"
 
 
+def render_usage():
+    width = get_terminal_width()
+    lines = []
+
+    lines.append(f"{Colors.BOLD}{Colors.BRIGHT_BLUE}{'=' * width}{Colors.RESET}")
+    lines.append(center_text(f"{Colors.BOLD}{Colors.WHITE}crrcy.sh{Colors.RESET}"))
+    lines.append(
+        center_text(
+            f"{Colors.DIM}Real-time Currency Exchange Rates & Historical Charts{Colors.RESET}"
+        )
+    )
+    lines.append(f"{Colors.BOLD}{Colors.BRIGHT_BLUE}{'=' * width}{Colors.RESET}")
+    lines.append("")
+
+    lines.append(f"{Colors.BOLD}{Colors.BRIGHT_CYAN}PROJECT DESCRIPTION{Colors.RESET}")
+    lines.append(f"{Colors.DIM}{'─' * width}{Colors.RESET}")
+    lines.append(
+        "crrcy.sh is a lightweight, terminal-friendly currency exchange service that provides"
+    )
+    lines.append(
+        "real-time rates for fiat and cryptocurrencies, along with beautiful historical price"
+    )
+    lines.append("charts rendered directly in your terminal via curl.")
+    lines.append("")
+
+    lines.append(f"{Colors.BOLD}{Colors.BRIGHT_CYAN}ENDPOINTS{Colors.RESET}")
+    lines.append(f"{Colors.DIM}{'─' * width}{Colors.RESET}")
+    lines.append("")
+
+    lines.append(f"{Colors.BRIGHT_GREEN}1. Get Latest Rates{Colors.RESET}")
+    lines.append(f"   {Colors.CYAN}GET /LATEST{Colors.RESET}")
+    lines.append("   Get latest exchange rates")
+    lines.append("")
+
+    lines.append(f"{Colors.BRIGHT_GREEN}2. Get Current Rates{Colors.RESET}")
+    lines.append(f"   {Colors.CYAN}GET /USD{Colors.RESET}")
+    lines.append(f"   {Colors.CYAN}GET /EUR/USD,EUR,GBP{Colors.RESET}")
+    lines.append("   Get current exchange rates for one or multiple currencies")
+    lines.append("")
+
+    lines.append(f"{Colors.BRIGHT_GREEN}3. Get Historical Charts{Colors.RESET}")
+    lines.append(f"   {Colors.CYAN}GET /last/USD/BTC/30d{Colors.RESET}")
+    lines.append(f"   {Colors.CYAN}GET /last/USD/BTC/30d/5{Colors.RESET}")
+    lines.append("   Display historical price data as an ASCII chart in your terminal")
+    lines.append("")
+
+    lines.append(f"{Colors.BOLD}{Colors.BRIGHT_CYAN}PARAMETERS{Colors.RESET}")
+    lines.append(f"{Colors.DIM}{'─' * width}{Colors.RESET}")
+    lines.append("")
+
+    lines.append(f"{Colors.BRIGHT_YELLOW}base{Colors.RESET}")
+    lines.append("  Base currency for rate conversion (e.g., USD, EUR, BTC)")
+    lines.append("")
+
+    lines.append(f"{Colors.BRIGHT_YELLOW}target{Colors.RESET}")
+    lines.append(
+        "  Target currencies (comma-separated for multiple, e.g., USD,EUR,GBP)"
+    )
+    lines.append("")
+
+    lines.append(f"{Colors.BRIGHT_YELLOW}time{Colors.RESET}")
+    lines.append("  Time range for historical data:")
+    lines.append(f"    {Colors.CYAN}30d   → 30 days{Colors.RESET}")
+    lines.append(f"    {Colors.CYAN}6m    → 6 months (180 days){Colors.RESET}")
+    lines.append(f"    {Colors.CYAN}1y    → 1 year (365 days){Colors.RESET}")
+    lines.append(f"    {Colors.CYAN}90    → 90 days (numeric){Colors.RESET}")
+    lines.append("")
+
+    lines.append(f"{Colors.BRIGHT_YELLOW}step{Colors.RESET}")
+    lines.append("  Data point interval (optional, default: auto-calculated)")
+    lines.append("  Must be >= 1. Max 365 data points per request")
+    lines.append("")
+
+    lines.append(f"{Colors.BOLD}{Colors.BRIGHT_CYAN}EXAMPLES{Colors.RESET}")
+    lines.append(f"{Colors.DIM}{'─' * width}{Colors.RESET}")
+    lines.append("")
+
+    lines.append(f"{Colors.BRIGHT_GREEN}Latest Rates:{Colors.RESET}")
+    lines.append(f"  $ curl crrcy.sh/latest")
+    lines.append("")
+
+    lines.append(f"{Colors.BRIGHT_GREEN}Current Rates:{Colors.RESET}")
+    lines.append(f"  $ curl crrcy.sh/EUR/USD,GBP,JPY")
+    lines.append("")
+
+    lines.append(f"{Colors.BRIGHT_GREEN}Historical Charts:{Colors.RESET}")
+    lines.append(f"  $ curl crrcy.sh/last/USD/BTC/30d")
+    lines.append(f"  $ curl crrcy.sh/last/USD/ETH,BTC/90d")
+    lines.append(f"  $ curl crrcy.sh/last/USD/EUR/1y/10")
+    lines.append("")
+
+    lines.append(f"{Colors.BOLD}{Colors.BRIGHT_CYAN}FEATURES{Colors.RESET}")
+    lines.append(f"{Colors.DIM}{'─' * width}{Colors.RESET}")
+    lines.append(
+        f"  {Colors.BRIGHT_GREEN}✓{Colors.RESET} Real-time currency exchange rates"
+    )
+    lines.append(
+        f"  {Colors.BRIGHT_GREEN}✓{Colors.RESET} Support for 150+ fiat currencies & major cryptocurrencies"
+    )
+    lines.append("")
+
+    lines.append(f"{Colors.BOLD}{Colors.BRIGHT_BLUE}{'=' * width}{Colors.RESET}")
+    lines.append(
+        center_text(
+            f"{Colors.DIM}For more info: https://github.com/marcosbtesh/crrcy.sh{Colors.RESET}"
+        )
+    )
+    lines.append(f"{Colors.BOLD}{Colors.BRIGHT_BLUE}{'=' * width}{Colors.RESET}")
+
+    return "\n".join(lines) + "\n"
+
+
 def _format_x_axis(date_obj, duration_delta):
     days = duration_delta.days
 

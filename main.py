@@ -25,9 +25,26 @@ def parse_path_args(arg_str):
     ]
 
 
-@app.route("/", defaults={"query": "latest"})
+@app.route("/", defaults={"query": None})
 @app.route("/<path:query>")
 async def get_rates(query):
+    if query is None or query.lower() in ["usage", "help", "info"]:
+        if is_curl_client():
+            output = renderer.render_usage()
+            return Response(output, mimetype="text/plain")
+        return jsonify(
+            {
+                "message": "Use /usage endpoint to view help",
+                "endpoints": {
+                    "current_rates": "GET /",
+                    "current_rates_with_base": "GET /{base}",
+                    "current_rates_with_targets": "GET /{base}/{targets}",
+                    "historical": "GET /last/{base}/{target}/{time}",
+                    "historical_with_step": "GET /last/{base}/{target}/{time}/{step}",
+                },
+            }
+        )
+
     parts = query.split("/")
 
     if len(parts) > 1:
