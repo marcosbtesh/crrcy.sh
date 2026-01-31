@@ -316,7 +316,7 @@ FLASK_PORT=5001
 
 - Data is cached to reduce API calls
 - Historical data is permanently cached (no expiration)
-- Current rates are cached for 24 hours
+- Current rates are cached for 1 hour
 - Crypto rates are automatically inverted (showing base/crypto instead of crypto/base)
 
 ## 🐛 Troubleshooting
