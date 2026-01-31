@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+
 import dotenv
 from flask import Flask, Response, jsonify, request
 
@@ -55,6 +57,42 @@ async def get_rates(query):
                 f"{renderer.Colors.RED}Error: {str(e)}{renderer.Colors.RESET}\n",
                 status=500,
             )
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/hist/<path:query>")
+@app.route("/historical/<path:query>")
+@app.route("/last/<path:query>")
+async def get_historical_rates(query):
+    parts = query.split("/")
+    if len(parts) < 3:
+        return jsonify({"error": "Invalid format. Use /last/base/target/time"}), 400
+
+    base = parts[0].upper()
+    target = parts[1].upper()
+    time_str = parts[2].lower()
+
+    days = 0
+
+    if time_str.endswith("d"):
+        days = int(time_str[:-1])
+    elif time_str.endswith("m"):
+        days = int(time_str[:-1]) * 30
+    else:
+        try:
+            days = int(time_str)
+        except ValueError:
+            return jsonify({"error": "Invalid time format"}), 400
+
+    target_date = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d")
+
+    try:
+        data = await currency_service.get_historical_rates(
+            base=base, symbols=[target], date=target_date
+        )
+    except Exception as e:
+        if is_curl_client():
+            return Response(f"Error: {str(e)}\n", status=500)
         return jsonify({"error": str(e)}), 500
 
 

@@ -1,7 +1,10 @@
+import datetime
 import os
+
 import currencyapicom
 from dotenv import load_dotenv
-from cache import get_cache_batch, set_cache_batch
+
+from cache import get_cache, get_cache_batch, set_cache, set_cache_batch
 from currencies import Currencies
 
 load_dotenv()
@@ -10,6 +13,7 @@ load_dotenv()
 class Currency:
     def __init__(self) -> None:
         self.CACHE_PREFIX = "currency"
+        self.CACHE_PREFIX_HISTORICAL = "historical"
         self.client = currencyapicom.Client(os.getenv("FIAT_FREE_CURRENCY_API_KEY"))
         self.checker = Currencies()
 
@@ -90,3 +94,25 @@ class Currency:
             print(f"API Error: {e}")
 
         return cached_batch
+
+    async def get_historical_rates(self, base: str, symbols: list[str], date: datetime):
+        base = base.upper()
+
+        key = f"{self.CACHE_PREFIX_HISTORICAL}:{date}:{base}:{symbols}"
+
+        cached_batch = get_cache(key=key)
+
+        if cached_batch:
+            return cached_batch
+
+        try:
+
+            historical_rates = self.client.historical(
+                base_currency=base, currencies=symbols, date=date
+            )
+
+            set_cache(key, historical_rates, expire_hours=48)
+
+            return historical_rates
+        except Exception as e:
+            print(f"API Error: {str(e)}")
