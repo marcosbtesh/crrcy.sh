@@ -8,7 +8,7 @@
 ## 📺 Demo Video
 
 <video width="100%" controls>
-  <source src="./images/demo.mp4" type="video/mp4">
+  <source src="https://www.youtube.com/watch?v=eZPj89N53oE" type="video/mp4">
   Your browser does not support the video tag.
 </video>
 
