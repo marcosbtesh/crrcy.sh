@@ -1,7 +1,12 @@
 import os
+import json
+from datetime import datetime, timedelta
+from typing import Any, Dict, List
+
 import currencyapicom
 from dotenv import load_dotenv
-from cache import get_cache_batch, set_cache_batch
+
+from cache import get_cache, get_cache_batch, set_cache, set_cache_batch
 from currencies import Currencies
 
 load_dotenv()
@@ -10,6 +15,8 @@ load_dotenv()
 class Currency:
     def __init__(self) -> None:
         self.CACHE_PREFIX = "currency"
+        self.CACHE_PREFIX_HISTORICAL = "historical"
+        self.CACHE_PREFIX_LATEST = "latest"
         self.client = currencyapicom.Client(os.getenv("FIAT_FREE_CURRENCY_API_KEY"))
         self.checker = Currencies()
 
@@ -90,3 +97,97 @@ class Currency:
             print(f"API Error: {e}")
 
         return cached_batch
+
+    async def get_timeseries_data(
+        self,
+        base: str,
+        targets: list[str],
+        start_date: datetime,
+        end_date: datetime,
+        step: int = 1,
+    ) -> Dict[str, Any]:
+        base = base.upper()
+        targets = [t.upper() for t in targets]
+
+        date_list = []
+        curr = start_date
+        while curr <= end_date:
+            date_list.append(curr.strftime("%Y-%m-%d"))
+            curr += timedelta(days=step)
+
+        today_str = datetime.now().strftime("%Y-%m-%d")
+
+        combined_results = {t: {} for t in targets}
+
+        for target in targets:
+            is_symbol_crypto = (
+                self.checker.check_which_type_of_currency(target) == "CRYPTO"
+            )
+
+            for date_str in date_list:
+                if date_str == today_str:
+                    cache_key = f"{self.CACHE_PREFIX_LATEST}:{base}:{target}"
+                else:
+                    cache_key = (
+                        f"{self.CACHE_PREFIX_HISTORICAL}:{date_str}:{base}:{target}"
+                    )
+
+                cached_data = get_cache(cache_key)
+
+                if cached_data:
+                    try:
+                        data_dict = (
+                            json.loads(cached_data)
+                            if isinstance(cached_data, str)
+                            else cached_data
+                        )
+                        if isinstance(data_dict, dict) and "data" in data_dict:
+                            if target in data_dict["data"]:
+                                value = data_dict["data"][target]["value"]
+                                if (
+                                    is_symbol_crypto
+                                    and isinstance(value, (int, float))
+                                    and value != 0
+                                ):
+                                    value = 1 / value
+                                combined_results[target][date_str] = {"value": value}
+                                continue
+                    except Exception:
+                        pass
+
+                try:
+                    if date_str == today_str:
+                        api_data = self.client.latest(
+                            base_currency=base, currencies=[target]
+                        )
+                        set_cache(
+                            cache_key,
+                            api_data,
+                            expire_hours=1,
+                        )
+                    else:
+                        api_data = self.client.historical(
+                            base_currency=base, currencies=[target], date=date_str
+                        )
+                        set_cache(
+                            cache_key,
+                            api_data,
+                            expire_hours=None,
+                        )
+
+                    if "data" in api_data and target in api_data["data"]:
+                        value = api_data["data"][target]["value"]
+                        if (
+                            is_symbol_crypto
+                            and isinstance(value, (int, float))
+                            and value != 0
+                        ):
+                            value = 1 / value
+                        combined_results[target][date_str] = {"value": value}
+                except Exception as e:
+                    continue
+
+        return {
+            "meta": {"base": base, "targets": targets, "step": step},
+            "data": combined_results,
+        }
