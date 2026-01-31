@@ -98,7 +98,7 @@ async def get_rates(query):
             )
 
         if is_curl_client():
-            output = renderer.render_fiat_table(data)
+            output = renderer.render_table(data)
             return Response(output, mimetype="text/plain")
 
         return jsonify({"data": data})

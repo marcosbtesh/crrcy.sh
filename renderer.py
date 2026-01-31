@@ -53,7 +53,7 @@ def render_footer():
     print("")
 
 
-def render_fiat_table(data: dict):
+def render_table(data: dict):
 
     lines = []
     lines.append(render_header("CURRENCY RATES", "Base: USD"))
