@@ -320,6 +320,11 @@ def render_graph(data: dict, start_date, end_date):
             row_exact = normalized_h * (graph_height - 1)
             y_positions.append(row_exact)
 
+        data_point_cols = set()
+        for point_idx in range(len(points)):
+            col = int((point_idx / (len(points) - 1)) * (graph_width - 1))
+            data_point_cols.add(col)
+
         for col in range(graph_width - 1):
             x1 = col
             y1 = y_positions[col]
@@ -353,6 +358,18 @@ def render_graph(data: dict, start_date, end_date):
                 for r in range(start_row, end_row + 1):
                     if graph_rows[r][col] == " ":
                         graph_rows[r][col] = f"{color}│{Colors.RESET}"
+
+        for point_idx in range(len(points)):
+            col = (
+                int((point_idx / (len(points) - 1)) * (graph_width - 1))
+                if len(points) > 1
+                else 0
+            )
+            col = max(0, min(graph_width - 1, col))
+            row = int(round(y_positions[col]))
+            row = max(0, min(graph_height - 1, row))
+            if graph_rows[row][col] == " ":
+                graph_rows[row][col] = f"{Colors.BRIGHT_CYAN}●{Colors.RESET}"
 
         for row in range(graph_height):
             row_val = max_val - (row * (val_range / (graph_height - 1)))
