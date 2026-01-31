@@ -23,6 +23,7 @@ class Colors:
     BRIGHT_YELLOW = "\033[93m"
     BRIGHT_BLUE = "\033[94m"
     BRIGHT_CYAN = "\033[96m"
+    BRIGHT_RED = "\033[91m"
 
 
 def get_terminal_width():
@@ -189,28 +190,72 @@ def render_graph(data: dict, start_date, end_date):
         lines.append(f"{Colors.BOLD}{target} Rate Chart{Colors.RESET}")
         lines.append("")
 
+        graph_rows = [[" " for _ in range(graph_width)] for _ in range(graph_height)]
+
+        y_positions = []
+        for col in range(graph_width):
+            idx = (col / graph_width) * (len(points) - 1)
+            idx_low = int(idx)
+            idx_high = min(idx_low + 1, len(points) - 1)
+
+            if idx_low == idx_high:
+                val = points[idx_low][1]
+            else:
+                frac = idx - idx_low
+                val = points[idx_low][1] * (1 - frac) + points[idx_high][1] * frac
+
+            normalized_h = (max_val - val) / val_range if val_range > 0 else 0
+            row_exact = normalized_h * (graph_height - 1)
+            y_positions.append(row_exact)
+
+        for col in range(graph_width - 1):
+            x1 = col
+            y1 = y_positions[col]
+            x2 = col + 1
+            y2 = y_positions[col + 1]
+
+            row1 = int(round(y1))
+            row2 = int(round(y2))
+            row1 = max(0, min(graph_height - 1, row1))
+            row2 = max(0, min(graph_height - 1, row2))
+
+            price_change = y2 - y1
+            if price_change < -0.1:
+                color = Colors.BRIGHT_GREEN
+            elif price_change > 0.1:
+                color = Colors.BRIGHT_RED
+            else:
+                color = Colors.BRIGHT_YELLOW
+
+            if row1 == row2:
+                graph_rows[row1][col] = f"{color}─{Colors.RESET}"
+            elif row1 > row2:
+                start_row = row2
+                end_row = row1
+                for r in range(start_row, end_row + 1):
+                    if graph_rows[r][col] == " ":
+                        graph_rows[r][col] = f"{color}│{Colors.RESET}"
+            else:
+                start_row = row1
+                end_row = row2
+                for r in range(start_row, end_row + 1):
+                    if graph_rows[r][col] == " ":
+                        graph_rows[r][col] = f"{color}│{Colors.RESET}"
+
+        row_last = int(round(y_positions[-1]))
+        row_last = max(0, min(graph_height - 1, row_last))
+        if graph_rows[row_last][-1] == " ":
+            graph_rows[row_last][-1] = f"{Colors.BRIGHT_GREEN}●{Colors.RESET}"
+
         for row in range(graph_height):
-
             row_val = max_val - (row * (val_range / (graph_height - 1)))
-
             label = f"{Colors.WHITE}{row_val:10,.2f}{Colors.RESET} |"
-            line_chars = []
 
+            graph_line = ""
             for col in range(graph_width):
-                idx = int((col / graph_width) * (len(points) - 1))
-                point_val = points[idx][1]
+                graph_line += graph_rows[row][col]
 
-                normalized_h = (max_val - point_val) / val_range
-                point_row = int(normalized_h * (graph_height - 1))
-
-                if point_row == row:
-                    line_chars.append(f"{Colors.BRIGHT_GREEN}*{Colors.RESET}")
-                elif point_row > row:
-                    line_chars.append(" ")
-                else:
-                    line_chars.append(" ")
-
-            lines.append(label + "".join(line_chars))
+            lines.append(label + graph_line)
 
         lines.append(" " * y_axis_width + "+" + "-" * graph_width)
 
