@@ -49,7 +49,6 @@ def render_header(title, subtitle=None):
 
 
 def render_footer():
-    # TODO: Implement footer rendering here
     print("")
 
 
@@ -89,9 +88,6 @@ def render_fiat_table(data: dict):
 
 
 def _format_x_axis(date_obj, duration_delta):
-
-    print("Formatting X Axis")
-
     days = duration_delta.days
 
     if days < 1:
@@ -142,100 +138,130 @@ def _render_graph_footer(last_updated, start_date, end_date, min_val, max_val):
 
 
 def render_graph(data: dict, start_date, end_date):
-    print("Imlement render graph here")
-
     metadata = data.get("meta", {})
     last_updated = metadata.get("last_updated_at", "Unknown")
 
-    raw_data = data.get("data", {})
+    series_data = data.get("data", {})
 
-    points = []
-
-    for date_str, info in raw_data.items():
-        try:
-            val = info["value"] if isinstance(info, dict) and "value" in info else info
-
-            dt = datetime.strptime(date_str, "%Y-%m-%d")
-            val = cast(Union[str, float, int], val)
-            points.append((dt, float(val)))
-
-        except (ValueError, TypeError):
-            continue
-
-    points.sort(key=lambda x: x[0])
-
-    if not points:
-        return f"\n{Colors.RED}Insufficient data to render graph.{Colors.RESET}\n"
-
-    term_width = get_terminal_width()
-    graph_height = 12
-    y_axis_width = 12
-    graph_width = term_width - y_axis_width - 2
-
-    values = [p[1] for p in points]
-    min_val = min(values)
-    max_val = max(values)
-
-    val_range = max_val - min_val if max_val != min_val else 1
+    if not series_data:
+        return f"\n{Colors.RED}No data available to render graph.{Colors.RESET}\n"
 
     lines = []
     lines.append(render_header("PRICE HISTORY", f"{start_date} - {end_date}"))
     lines.append("")
 
-    for row in range(graph_height):
+    for target, target_data in series_data.items():
+        points = []
 
-        row_val = max_val - (row * (val_range / (graph_height - 1)))
+        for date_str, info in target_data.items():
+            try:
+                val = (
+                    info["value"]
+                    if isinstance(info, dict) and "value" in info
+                    else info
+                )
 
-        label = f"{Colors.WHITE}{row_val:10,.2f}{Colors.RESET} |"
-        line_chars = []
+                dt = datetime.strptime(date_str, "%Y-%m-%d")
+                val = cast(Union[str, float, int], val)
+                points.append((dt, float(val)))
 
-        for col in range(graph_width):
-            idx = int((col / graph_width) * (len(points) - 1))
-            point_val = points[idx][1]
+            except (ValueError, TypeError):
+                continue
 
-            normalized_h = (max_val - point_val) / val_range
-            point_row = int(normalized_h * (graph_height - 1))
+        points.sort(key=lambda x: x[0])
 
-            if point_row == row:
-                line_chars.append(f"{Colors.BRIGHT_GREEN}*{Colors.RESET}")
-            elif point_row > row:
-                line_chars.append(" ")
-            else:
-                line_chars.append(" ")
+        if not points or len(points) < 2:
+            lines.append(f"{Colors.RED}Insufficient data for {target}.{Colors.RESET}")
+            lines.append("")
+            continue
+
+        term_width = get_terminal_width()
+        graph_height = 12
+        y_axis_width = 12
+        graph_width = term_width - y_axis_width - 2
+
+        values = [p[1] for p in points]
+        min_val = min(values)
+        max_val = max(values)
+
+        val_range = max_val - min_val if max_val != min_val else 1
+
+        lines.append(f"{Colors.BOLD}{target} Rate Chart{Colors.RESET}")
+        lines.append("")
+
+        for row in range(graph_height):
+
+            row_val = max_val - (row * (val_range / (graph_height - 1)))
+
+            label = f"{Colors.WHITE}{row_val:10,.2f}{Colors.RESET} |"
+            line_chars = []
+
+            for col in range(graph_width):
+                idx = int((col / graph_width) * (len(points) - 1))
+                point_val = points[idx][1]
+
+                normalized_h = (max_val - point_val) / val_range
+                point_row = int(normalized_h * (graph_height - 1))
+
+                if point_row == row:
+                    line_chars.append(f"{Colors.BRIGHT_GREEN}*{Colors.RESET}")
+                elif point_row > row:
+                    line_chars.append(" ")
+                else:
+                    line_chars.append(" ")
+
+            lines.append(label + "".join(line_chars))
 
         lines.append(" " * y_axis_width + "+" + "-" * graph_width)
 
-    x_labels = []
-    padding_len = y_axis_width + 1
-    current_line_len = padding_len
-    x_labels.append(" " * padding_len)
+        x_labels = []
+        padding_len = y_axis_width + 1
+        current_line_len = padding_len
+        x_labels.append(" " * padding_len)
 
-    num_labels = 5
-    step = len(points) // num_labels if len(points) >= num_labels else 1
-    duration = (
-        end_date - start_date
-        if isinstance(end_date, datetime) and isinstance(start_date, datetime)
-        else timedelta(days=3)
+        num_labels = 5
+        step = len(points) // num_labels if len(points) >= num_labels else 1
+        duration = (
+            end_date - start_date
+            if isinstance(end_date, datetime) and isinstance(start_date, datetime)
+            else timedelta(days=3)
+        )
+
+        for i in range(0, len(points), step):
+            dt = points[i][0]
+            label_str = _format_x_axis(dt, duration)
+
+            target_pos = padding_len + int((i / len(points)) * graph_width)
+
+            spaces_needed = target_pos - current_line_len
+
+            if spaces_needed > 0:
+                x_labels.append(" " * spaces_needed)
+                x_labels.append(f"{Colors.DIM}{label_str}{Colors.RESET}")
+                current_line_len += spaces_needed + len(label_str)
+
+        lines.append("".join(x_labels))
+        lines.append("")
+
+    all_values = []
+    for target, target_data in series_data.items():
+        for date_str, info in target_data.items():
+            try:
+                if isinstance(info, dict) and "value" in info:
+                    val = info["value"]
+                else:
+                    val = info
+                if isinstance(val, (int, float)):
+                    all_values.append(float(val))
+            except (ValueError, TypeError):
+                continue
+
+    min_all = min(all_values) if all_values else 0
+    max_all = max(all_values) if all_values else 0
+
+    footer_lines = _render_graph_footer(
+        last_updated, start_date, end_date, min_all, max_all
     )
-
-    for i in range(0, len(points), step):
-        dt = points[1][0]
-        label_str = _format_x_axis(dt, duration)
-
-        target_pos = padding_len + int((i / len(points)) * graph_width)
-
-        spaces_needed = target_pos - current_line_len
-
-        if spaces_needed > 0:
-            x_labels.append(" " * spaces_needed)
-            x_labels.append(f"{Colors.DIM}{label_str}{Colors.RESET}")
-            current_line_len += spaces_needed + len(label_str)
-
-    lines.append("".join(x_labels))
-    lines.append("")
-
-    lines.append(
-        _render_graph_footer(last_updated, start_date, end_date, min_val, max_val)
-    )
+    lines.append(footer_lines)
 
     return "\n".join(lines) + "\n"

@@ -86,15 +86,12 @@ async def get_historical_rates(query):
             return jsonify({"error": "Invalid time format"}), 400
 
     step = 1
-    if days > 365:  # > 1 Year
+    if days > 365:
         step = 120
-    elif days > 90:  # > 3 Months
+    elif days > 90:
         step = 30
-    elif days > 30:  # > 1 Month
+    elif days > 30:
         step = 10
-
-    # Optional: Override via query param for explicit control
-    # step = int(request.args.get('step', step))
 
     end_dt = datetime.now()
     start_dt = end_dt - timedelta(days=days)

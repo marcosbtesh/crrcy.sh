@@ -1,4 +1,5 @@
 import os
+import json
 from datetime import datetime, timedelta
 from typing import Any, Dict, List
 
@@ -119,79 +120,74 @@ class Currency:
         combined_results = {t: {} for t in targets}
 
         for target in targets:
-            cache_keys = []
-            for d in date_list:
-                if d == today_str:
-                    cache_keys.append(f"{self.CACHE_PREFIX_LATEST}:{base}:{target}")
+            is_symbol_crypto = (
+                self.checker.check_which_type_of_currency(target) == "CRYPTO"
+            )
+
+            for date_str in date_list:
+                if date_str == today_str:
+                    cache_key = f"{self.CACHE_PREFIX_LATEST}:{base}:{target}"
                 else:
-                    cache_keys.append(
-                        f"{self.CACHE_PREFIX_HISTORICAL}:{d}:{base}:['{target}']"
+                    cache_key = (
+                        f"{self.CACHE_PREFIX_HISTORICAL}:{date_str}:{base}:{target}"
                     )
 
-            cached_values = get_cache_batch(keys=cache_keys, prefix="")
+                cached_data = get_cache(cache_key)
 
-            missing_dates = []
-            for i, date_str in enumerate(date_list):
-                key = cache_keys[i]
-                data = cached_values.get(key)
-                if data and "data" in data and target in data["data"]:
-                    combined_results[target][date_str] = {
-                        "value": data["data"][target]["value"]
-                    }
-                else:
-                    missing_dates.append(date_str)
+                if cached_data:
+                    try:
+                        data_dict = (
+                            json.loads(cached_data)
+                            if isinstance(cached_data, str)
+                            else cached_data
+                        )
+                        if isinstance(data_dict, dict) and "data" in data_dict:
+                            if target in data_dict["data"]:
+                                value = data_dict["data"][target]["value"]
+                                if (
+                                    is_symbol_crypto
+                                    and isinstance(value, (int, float))
+                                    and value != 0
+                                ):
+                                    value = 1 / value
+                                combined_results[target][date_str] = {"value": value}
+                                continue
+                    except Exception:
+                        pass
 
-            for d_str in missing_dates:
                 try:
-                    if d_str == today_str:
-                        api_data = await self.client.latest(
+                    if date_str == today_str:
+                        api_data = self.client.latest(
                             base_currency=base, currencies=[target]
                         )
                         set_cache(
-                            f"{self.CACHE_PREFIX_LATEST}:{base}:{target}",
+                            cache_key,
                             api_data,
                             expire_hours=1,
                         )
                     else:
-                        api_data = await self.client.historical(
-                            base_currency=base, currencies=[target], date=d_str
+                        api_data = self.client.historical(
+                            base_currency=base, currencies=[target], date=date_str
                         )
                         set_cache(
-                            f"{self.CACHE_PREFIX_HISTORICAL}:{d_str}:{base}:['{target}']",
+                            cache_key,
                             api_data,
-                            expire_hours=48,
+                            expire_hours=None,
                         )
 
-                    combined_results[target][d_str] = {
-                        "value": api_data["data"][target]["value"]
-                    }
-                except Exception:
+                    if "data" in api_data and target in api_data["data"]:
+                        value = api_data["data"][target]["value"]
+                        if (
+                            is_symbol_crypto
+                            and isinstance(value, (int, float))
+                            and value != 0
+                        ):
+                            value = 1 / value
+                        combined_results[target][date_str] = {"value": value}
+                except Exception as e:
                     continue
 
         return {
             "meta": {"base": base, "targets": targets, "step": step},
-            "series": combined_results,
+            "data": combined_results,
         }
-
-    # @deprectated
-    async def get_historical_rates(self, base: str, symbols: list[str], date: str):
-        base = base.upper()
-
-        key = f"{self.CACHE_PREFIX_HISTORICAL}:{date}:{base}:{symbols}"
-
-        cached_batch = get_cache(key=key)
-
-        if cached_batch:
-            return cached_batch
-
-        try:
-
-            historical_rates = self.client.historical(
-                base_currency=base, currencies=symbols, date=date
-            )
-
-            set_cache(key, historical_rates, expire_hours=48)
-
-            return historical_rates
-        except Exception as e:
-            print(f"API Error: {str(e)}")

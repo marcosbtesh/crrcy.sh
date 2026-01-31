@@ -55,5 +55,8 @@ def get_cache(key):
     return data if data else None
 
 
-def set_cache(key, data, expire_hours=6):
-    client.set(key, json.dumps(data), ex=expire_hours * 3600)
+def set_cache(key, data, expire_hours: int | None = 6):
+    if expire_hours is None:
+        client.set(key, json.dumps(data))
+    else:
+        client.set(key, json.dumps(data), ex=expire_hours * 3600)
