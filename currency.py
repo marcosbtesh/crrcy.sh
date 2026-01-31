@@ -117,6 +117,9 @@ class Currency:
 
         today_str = datetime.now().strftime("%Y-%m-%d")
 
+        end_date_str = end_date.strftime("%Y-%m-%d")
+        if not date_list or date_list[-1] != end_date_str:
+            date_list.append(end_date_str)
         combined_results = {t: {} for t in targets}
         last_updated_at = None
 
