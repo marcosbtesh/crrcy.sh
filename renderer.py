@@ -226,9 +226,34 @@ def _render_graph_footer(last_updated, start_date, end_date, min_val, max_val):
 
     if isinstance(last_updated, str):
         try:
-            last_updated = last_updated.replace("T", " ").replace("Z", " ")
+            if "T" in last_updated and "Z" in last_updated:
+                last_updated_dt = datetime.strptime(
+                    last_updated.replace("Z", ""), "%Y-%m-%dT%H:%M:%S"
+                )
+            else:
+                last_updated_dt = datetime.strptime(
+                    last_updated.replace("T", " ").replace("Z", ""), "%Y-%m-%d %H:%M:%S"
+                )
+
+            now = datetime.now()
+            time_diff = now - last_updated_dt
+
+            if time_diff.total_seconds() < 86400:
+                hours = int(time_diff.total_seconds() / 3600)
+                minutes = int((time_diff.total_seconds() % 3600) / 60)
+
+                if hours == 0:
+                    updated_str = f"{minutes} minute{'s' if minutes != 1 else ''} ago"
+                elif hours == 1:
+                    updated_str = "1 hour ago"
+                else:
+                    updated_str = f"{hours} hours ago"
+            else:
+                updated_str = last_updated_dt.strftime("%Y-%m-%d %H:%M UTC")
         except:
-            pass
+            updated_str = str(last_updated)
+    else:
+        updated_str = "Unknown"
 
     footer_lines = []
     footer_lines.append(f"{Colors.DIM}{'-' * width}{Colors.RESET}")
@@ -236,14 +261,17 @@ def _render_graph_footer(last_updated, start_date, end_date, min_val, max_val):
     col_width = width // 3
 
     l_col = f"Start: {start_str}"
-    m_col = f"Updated: {last_updated}"
+    m_col = f"Updated: {updated_str}"
     r_col = f"End: {end_str}"
-    min_val_col = f"Min: {min_val}"
-    max_val_col = f"Max: {max_val}"
 
     line = f"{Colors.CYAN}{l_col:<{col_width}}{Colors.YELLOW}{m_col:^{col_width}}{Colors.CYAN}{r_col:>{col_width}}{Colors.RESET}"
 
     footer_lines.append(line)
+
+    # Add min/max line
+    min_max_line = f"{Colors.GREEN}Min: {min_val:,.2f}{Colors.RESET}  {Colors.RED}Max: {max_val:,.2f}{Colors.RESET}"
+    footer_lines.append(center_text(min_max_line))
+
     footer_lines.append("")
     footer_lines.append(center_text(f"{Colors.BOLD}crrcy.sh{Colors.RESET}"))
 

@@ -118,6 +118,7 @@ class Currency:
         today_str = datetime.now().strftime("%Y-%m-%d")
 
         combined_results = {t: {} for t in targets}
+        last_updated_at = None
 
         for target in targets:
             is_symbol_crypto = (
@@ -151,6 +152,10 @@ class Currency:
                                 ):
                                     value = 1 / value
                                 combined_results[target][date_str] = {"value": value}
+                                if not last_updated_at and "meta" in data_dict:
+                                    last_updated_at = data_dict["meta"].get(
+                                        "last_updated_at"
+                                    )
                                 continue
                     except Exception:
                         pass
@@ -184,10 +189,17 @@ class Currency:
                         ):
                             value = 1 / value
                         combined_results[target][date_str] = {"value": value}
+                        if not last_updated_at and "meta" in api_data:
+                            last_updated_at = api_data["meta"].get("last_updated_at")
                 except Exception as e:
                     continue
 
         return {
-            "meta": {"base": base, "targets": targets, "step": step},
+            "meta": {
+                "base": base,
+                "targets": targets,
+                "step": step,
+                "last_updated_at": last_updated_at or "Unknown",
+            },
             "data": combined_results,
         }
