@@ -194,6 +194,7 @@ CAD - Canadian Dollar
 AUD - Australian Dollar
 ... and 150+ more
 ```
+[All Fiat Currencies](./Currencies/fiat.txt)
 
 #### Popular Cryptocurrencies
 ```
@@ -205,6 +206,7 @@ ADA  - Cardano
 SOL  - Solana
 ... and many more
 ```
+[All Crypto Currencies](./Currencies/crypto.txt)
 
 ### Time Format
 
