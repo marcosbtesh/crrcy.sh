@@ -1,5 +1,6 @@
 import dotenv
-from flask import Flask, jsonify, request, Response
+from flask import Flask, Response, jsonify, request
+
 import renderer
 from currency import Currency
 
@@ -58,4 +59,4 @@ async def get_rates(query):
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5001, debug=True)
+    app.run(host="0.0.0.0", port=5001, debug=False)
