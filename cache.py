@@ -72,6 +72,13 @@ def is_ip_blocked(ip_address: str) -> bool:
     return bool(client.exists(blocked_key))
 
 
+def get_key_expiration(key):
+    expiration = client.getex(key)
+
+    print(expiration)
+    return expiration
+
+
 def block_ip(ip_address: str, duration_minutes: int = 60) -> None:
     """Block an IP address for a specified duration."""
     blocked_key = f"{BLOCKED_IPS_PREFIX}:{ip_address}"
