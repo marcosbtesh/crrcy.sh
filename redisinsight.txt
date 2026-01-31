@@ -1,0 +1,6 @@
+pamac build redisinsight
+
+sudo pacman -S redis
+
+sudo systemctl enable --now redis
+
