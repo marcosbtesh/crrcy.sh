@@ -74,6 +74,7 @@ curl http://localhost:5001/latest
 ```
 
 **Response:**
+
 ```
 ═════════════════════════════════════════════════════════════════════════════════
                               CURRENCY RATES
@@ -103,6 +104,7 @@ curl http://localhost:5001/BTC
 ```
 
 **Parameters:**
+
 - `base` - Base currency code (e.g., USD, EUR, BTC)
 
 **Screenshot:**
@@ -121,6 +123,7 @@ curl http://localhost:5001/USD/BTC,ETH,XRP
 ```
 
 **Parameters:**
+
 - `base` - Base currency code
 - `targets` - Comma-separated list of target currencies
 
@@ -141,6 +144,7 @@ curl http://localhost:5001/last/EUR/USD/1y
 ```
 
 **Parameters:**
+
 - `base` - Base currency
 - `target` - Target currency or currencies (comma-separated)
 - `time` - Time range:
@@ -166,6 +170,7 @@ curl http://localhost:5001/last/USD/BTC/90d/5
 ```
 
 **Parameters:**
+
 - `base` - Base currency
 - `target` - Target currency or currencies
 - `time` - Time range
@@ -181,6 +186,7 @@ curl http://localhost:5001/last/USD/BTC/90d/5
 ### Base/Target Currencies
 
 #### Common Fiat Currencies
+
 ```
 USD - US Dollar
 EUR - Euro
@@ -191,9 +197,11 @@ CAD - Canadian Dollar
 AUD - Australian Dollar
 ... and 150+ more
 ```
+
 [All Fiat Currencies](./Currencies/fiat.txt)
 
 #### Popular Cryptocurrencies
+
 ```
 BTC  - Bitcoin
 ETH  - Ethereum
@@ -203,6 +211,7 @@ ADA  - Cardano
 SOL  - Solana
 ... and many more
 ```
+
 [All Crypto Currencies](./Currencies/crypto.txt)
 
 ### Time Format
@@ -234,36 +243,40 @@ SOL  - Solana
 ## 💻 Examples
 
 ### Track Bitcoin for 30 Days
+
 ```bash
 $ curl http://localhost:5001/last/USD/BTC/30d
 ```
 
-**Screenshot:**
-![BTC chart](./images/06-btc-30d-chart.png)
+<!-- **Screenshot:** -->
+<!-- ![BTC chart](./images/06-btc-30d-chart.png) -->
 
 ### Compare Multiple Cryptos
+
 ```bash
 $ curl http://localhost:5001/last/USD/BTC,ETH/90d
 ```
 
-**Screenshot:**
-![Multi-crypto comparison](./images/07-btc-eth-comparison.png)
+<!-- **Screenshot:** -->
+<!-- ![Multi-crypto comparison](./images/07-btc-eth-comparison.png) -->
 
 ### Long-term Currency Tracking
+
 ```bash
 $ curl http://localhost:5001/last/EUR/USD,GBP/1y/10
 ```
 
-**Screenshot:**
-![EUR/USD/GBP 1-year chart](./images/08-eur-longterm.png)
+<!-- **Screenshot:** -->
+<!-- ![EUR/USD/GBP 1-year chart](./images/08-eur-longterm.png) -->
 
 ### Quick Currency Check
+
 ```bash
 $ curl http://localhost:5001/USD/EUR,GBP,JPY,CHF
 ```
 
-**Screenshot:**
-![Quick currency check](./images/09-quick-check.png)
+<!-- **Screenshot:** -->
+<!-- ![Quick currency check](./images/09-quick-check.png) -->
 
 ---
 
@@ -274,7 +287,6 @@ $ curl http://localhost:5001/USD/EUR,GBP,JPY,CHF
 - **Caching:** Redis for performance
 - **Language:** Python 3.8+
 - **Terminal Rendering:** ANSI color codes + Unicode line drawing
-
 
 ## ⚙️ Configuration
 
@@ -310,11 +322,13 @@ FLASK_PORT=5001
 ## 🐛 Troubleshooting
 
 ### "No data available"
+
 - Check that the currency pair exists
 - Try a shorter time range
 - Verify API key is configured
 
 ### Slow responses
+
 - Check Redis is running
 - Verify API key credentials
 - Clear cache if stale data suspected
@@ -322,6 +336,7 @@ FLASK_PORT=5001
 ## 🤝 Contributing
 
 Contributions are welcome! Please feel free to:
+
 - Report bugs
 - Suggest features
 - Submit pull requests
