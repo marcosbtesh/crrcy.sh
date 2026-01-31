@@ -287,6 +287,19 @@ def render_graph(data: dict, start_date, end_date):
     if not series_data:
         return f"\n{Colors.RED}No data available to render graph.{Colors.RESET}\n"
 
+    latest_data_date = None
+    for target, target_data in series_data.items():
+        for date_str in target_data.keys():
+            try:
+                dt = datetime.strptime(date_str, "%Y-%m-%d")
+                if latest_data_date is None or dt > latest_data_date:
+                    latest_data_date = dt
+            except (ValueError, TypeError):
+                continue
+
+    if latest_data_date:
+        last_updated = latest_data_date.strftime("%Y-%m-%dT%H:%M:%SZ")
+
     lines = []
     lines.append(render_header("PRICE HISTORY", f"{start_date} - {end_date}"))
     lines.append("")
