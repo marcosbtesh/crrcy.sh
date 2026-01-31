@@ -2,6 +2,7 @@ import os
 import currencyapicom
 from dotenv import load_dotenv
 from cache import get_cache_batch, set_cache_batch
+from currencies import Currencies
 
 load_dotenv()
 
@@ -10,23 +11,29 @@ class Currency:
     def __init__(self) -> None:
         self.CACHE_PREFIX = "currency"
         self.client = currencyapicom.Client(os.getenv("FIAT_FREE_CURRENCY_API_KEY"))
+        self.checker = Currencies()
 
-    def _normalize_rates(self, raw_data: dict) -> dict:
+    def _normalize_rates(self, raw_data: dict, invert: bool = False) -> dict:
         clean_rates = {}
         for iso, data in raw_data.items():
-            if isinstance(data, dict) and "value" in data:
-                clean_rates[iso] = data["value"]
+            val = data["value"] if isinstance(data, dict) and "value" in data else data
+            if invert and isinstance(val, (int, float)) and val != 0:
+                clean_rates[iso] = 1 / val
             else:
-                clean_rates[iso] = data
+                clean_rates[iso] = val
         return clean_rates
 
     async def get_rates(self, symbols: list[str] | None = None, base: str = "USD"):
-        prefix = f"{self.CACHE_PREFIX}:{base.upper()}"
+        base = base.upper()
+        is_crypto_base = self.checker.check_which_type_of_currency(base) == "CRYPTO"
+
+        prefix = f"{self.CACHE_PREFIX}:{base}"
 
         if not symbols or "LATEST" in [s.upper() for s in symbols]:
-            response = self.client.latest(base_currency=base)
+            api_base = "USD" if is_crypto_base else base
+            response = self.client.latest(base_currency=api_base)
             raw_rates = response.get("data", {})
-            rates = self._normalize_rates(raw_rates)
+            rates = self._normalize_rates(raw_rates, invert=is_crypto_base)
             set_cache_batch(rates, prefix=prefix)
             return rates
 
@@ -37,14 +44,27 @@ class Currency:
             return cached_batch
 
         try:
-            response = self.client.latest(currencies=missing, base_currency=base)
-            raw_rates = response.get("data", {})
-            new_rates = self._normalize_rates(raw_rates)
+            if is_crypto_base:
+                response = self.client.latest(currencies=[base], base_currency="USD")
+                raw_rates = response.get("data", {})
+                rates_in_usd = self._normalize_rates(raw_rates, invert=True)
 
-            set_cache_batch(new_rates, prefix=prefix)
-            cached_batch.update(new_rates)
+                final_res = {}
+                price_of_base = rates_in_usd.get(base)
+                for s in symbols:
+                    final_res[s] = price_of_base
+
+                set_cache_batch(final_res, prefix=prefix)
+                cached_batch.update(final_res)
+            else:
+                response = self.client.latest(currencies=missing, base_currency=base)
+                raw_rates = response.get("data", {})
+                new_rates = self._normalize_rates(raw_rates, invert=False)
+
+                set_cache_batch(new_rates, prefix=prefix)
+                cached_batch.update(new_rates)
+
         except Exception as e:
             print(f"API Error: {e}")
-            pass
 
         return cached_batch

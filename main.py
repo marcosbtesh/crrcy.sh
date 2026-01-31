@@ -6,7 +6,6 @@ from currency import Currency
 dotenv.load_dotenv()
 
 app = Flask(__name__)
-
 currency_service = Currency()
 
 
@@ -24,15 +23,21 @@ def parse_path_args(arg_str):
 @app.route("/", defaults={"query": "latest"})
 @app.route("/<path:query>")
 async def get_rates(query):
-    base_currency = request.args.get("base", "USD")
+    parts = query.split("/")
+
+    if len(parts) > 1:
+        base_currency = parts[0].upper()
+        requested_symbols = parse_path_args(parts[1])
+    else:
+        base_currency = "USD"
+        requested_symbols = parse_path_args(parts[0])
 
     try:
-        if not query or query.lower() == "latest":
+        if not requested_symbols or "LATEST" in [s.upper() for s in requested_symbols]:
             data = await currency_service.get_rates(base=base_currency)
         else:
-            symbol_list = parse_path_args(query.upper())
             data = await currency_service.get_rates(
-                symbols=symbol_list, base=base_currency
+                symbols=requested_symbols, base=base_currency
             )
 
         if is_curl_client():
