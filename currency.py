@@ -33,8 +33,9 @@ class Currency:
     async def get_rates(self, symbols: list[str] | None = None, base: str = "USD"):
         base = base.upper()
         is_crypto_base = self.checker.check_which_type_of_currency(base) == "CRYPTO"
-        cache_expire_hours = 1 if is_crypto_base else 12
+        # cache_expire_hours = 1 if is_crypto_base else 12
         # cache_expire_hours = 24 if is_crypto_base else 24
+        cache_expire_hours = 1
 
         prefix = f"{self.CACHE_PREFIX}:{base}"
 
