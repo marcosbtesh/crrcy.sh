@@ -1,6 +1,5 @@
 import dotenv
 from flask import Flask, jsonify, request, Response
-from utils import is_curl_client, parse_list
 import renderer
 from crypto import Crypto
 from fiat import Fiat
@@ -13,15 +12,27 @@ crypto = Crypto()
 fiat = Fiat()
 
 
+def is_curl_client():
+    user_agent = request.headers.get("User-Agent", "").lower()
+    return "curl" in user_agent
+
+
+def parse_path_args(arg_str):
+    if not arg_str:
+        return []
+    return [x.strip() for x in arg_str.replace(",", "+").split("+") if x.strip()]
+
+
 @app.route("/")
 def _home_():
     if is_curl_client():
         return Response(
-            renderer.render_header("CURRENCY API", "Welcome")
+            renderer.render_header("CRRCY.SH", "Welcome")
             + f"\n{renderer.Colors.GREEN}Available Endpoints:{renderer.Colors.RESET}\n"
-            f"  /fiat    - Get Fiat Rates\n"
-            f"  /crypto  - Get Crypto Prices\n\n"
-            f"{renderer.Colors.DIM}Try: curl localhost:5000/fiat{renderer.Colors.RESET}\n",
+            f"  /fiat/latest       - Get All Fiat Rates\n"
+            f"  /fiat/usd+eur      - Get Specific Fiat Rates\n"
+            f"  /crypto/btc+eth    - Get Crypto Prices\n\n"
+            f"{renderer.Colors.DIM}Try: curl localhost:5001/fiat/latest{renderer.Colors.RESET}\n",
             mimetype="text/plain",
         )
 
@@ -29,22 +40,20 @@ def _home_():
         {
             "status": "online",
             "endpoints": ["/fiat", "/crypto"],
-            "usage": "Use query parameters to filter data.",
+            "usage": "Use path arguments: /fiat/usd+eur",
         }
     )
 
 
-# --- FIAT ROUTE ---
-@app.route("/fiat", methods=["GET"])
-async def get_fiat():
-    isos_param = request.args.get("isos")
-
+@app.route("/fiat", defaults={"query": "latest"})
+@app.route("/fiat/<path:query>")
+async def get_fiat(query):
     try:
-        if isos_param:
-            iso_list = parse_list(isos_param)
-            data = await fiat.get_iso_rate(iso_list)
-        else:
+        if not query or query.lower() == "latest":
             data = await fiat.get_latest()
+        else:
+            iso_list = parse_path_args(query.upper())
+            data = await fiat.get_iso_rate(iso_list)
 
         if is_curl_client():
             output = renderer.render_fiat_table(data)
@@ -61,24 +70,12 @@ async def get_fiat():
         return jsonify({"error": str(e)}), 500
 
 
-# --- CRYPTO ROUTE ---
-@app.route("/crypto", methods=["GET"])
-def get_crypto():
-    coins_param = request.args.get("coins")
+@app.route("/crypto/<path:query>")
+def get_crypto(query):
     vs_currency = request.args.get("vs", "usd")
 
-    if not coins_param:
-        error_msg = (
-            "Missing required parameter: 'coins'. Example: ?coins=bitcoin,ethereum"
-        )
-        if is_curl_client():
-            return Response(
-                f"{renderer.Colors.RED}{error_msg}{renderer.Colors.RESET}\n", status=400
-            )
-        return jsonify({"error": error_msg}), 400
-
     try:
-        coin_list = parse_list(coins_param)
+        coin_list = parse_path_args(query.lower())
         data = crypto.get_prices(coins=coin_list, vs_currency=vs_currency)
 
         if is_curl_client():
