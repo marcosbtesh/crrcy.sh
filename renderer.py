@@ -208,7 +208,7 @@ def _format_x_axis(date_obj, duration_delta):
     elif days > 60:
         return date_obj.strftime("%b %y")
     else:
-        return date_obj.strftime("%d %b")
+        return date_obj.strftime("%d %b %y")
 
 
 def _render_graph_footer(last_updated, start_date, end_date, min_val, max_val):
@@ -291,7 +291,8 @@ def render_graph(data: dict, start_date, end_date):
         term_width = get_terminal_width()
         graph_height = 12
         y_axis_width = 12
-        graph_width = term_width - y_axis_width - 2
+
+        graph_width = int((term_width - y_axis_width - 2) * 0.8)
 
         values = [p[1] for p in points]
         min_val = min(values)
@@ -319,11 +320,6 @@ def render_graph(data: dict, start_date, end_date):
             normalized_h = (max_val - val) / val_range if val_range > 0 else 0
             row_exact = normalized_h * (graph_height - 1)
             y_positions.append(row_exact)
-
-        data_point_cols = set()
-        for point_idx in range(len(points)):
-            col = int((point_idx / (len(points) - 1)) * (graph_width - 1))
-            data_point_cols.add(col)
 
         for col in range(graph_width - 1):
             x1 = col
@@ -359,18 +355,6 @@ def render_graph(data: dict, start_date, end_date):
                     if graph_rows[r][col] == " ":
                         graph_rows[r][col] = f"{color}│{Colors.RESET}"
 
-        for point_idx in range(len(points)):
-            col = (
-                int((point_idx / (len(points) - 1)) * (graph_width - 1))
-                if len(points) > 1
-                else 0
-            )
-            col = max(0, min(graph_width - 1, col))
-            row = int(round(y_positions[col]))
-            row = max(0, min(graph_height - 1, row))
-            if graph_rows[row][col] == " ":
-                graph_rows[row][col] = f"{Colors.BRIGHT_CYAN}●{Colors.RESET}"
-
         for row in range(graph_height):
             row_val = max_val - (row * (val_range / (graph_height - 1)))
             label = f"{Colors.WHITE}{row_val:10,.2f}{Colors.RESET} |"
@@ -383,33 +367,68 @@ def render_graph(data: dict, start_date, end_date):
 
         lines.append(" " * y_axis_width + "+" + "-" * graph_width)
 
-        x_labels = []
-        padding_len = y_axis_width + 1
-        current_line_len = padding_len
-        x_labels.append(" " * padding_len)
-
-        num_labels = 5
-        step = len(points) // num_labels if len(points) >= num_labels else 1
         duration = (
             end_date - start_date
             if isinstance(end_date, datetime) and isinstance(start_date, datetime)
             else timedelta(days=3)
         )
 
+        num_labels = min(len(points), 8)
+        step = max(1, len(points) // num_labels) if len(points) >= num_labels else 1
+
+        label_positions = []
         for i in range(0, len(points), step):
             dt = points[i][0]
             label_str = _format_x_axis(dt, duration)
+            col_pos = (
+                int((i / (len(points) - 1)) * (graph_width - 1))
+                if len(points) > 1
+                else 0
+            )
+            label_positions.append((col_pos, label_str))
 
-            target_pos = padding_len + int((i / len(points)) * graph_width)
+        if len(points) > 1:
+            last_col = graph_width - 1
+            last_date_str = _format_x_axis(points[-1][0], duration)
+            if label_positions[-1][0] != last_col:
+                label_positions.append((last_col, last_date_str))
 
-            spaces_needed = target_pos - current_line_len
+        if len(label_positions) > 5 and len(points) > 10:
 
-            if spaces_needed > 0:
-                x_labels.append(" " * spaces_needed)
-                x_labels.append(f"{Colors.DIM}{label_str}{Colors.RESET}")
-                current_line_len += spaces_needed + len(label_str)
+            padding_len = y_axis_width + 1
+            max_label_len = max(len(lbl) for _, lbl in label_positions)
 
-        lines.append("".join(x_labels))
+            for char_idx in range(max_label_len):
+                line = " " * padding_len
+                for col_pos, label_str in label_positions:
+
+                    spaces_needed = col_pos - len(line) + padding_len
+                    if spaces_needed > 0:
+                        line += " " * spaces_needed
+
+                    if char_idx < len(label_str):
+                        line += label_str[char_idx]
+                    else:
+                        line += " "
+
+                lines.append(line)
+        else:
+
+            x_labels = []
+            padding_len = y_axis_width + 1
+            current_line_len = padding_len
+            x_labels.append(" " * padding_len)
+
+            for col_pos, label_str in label_positions:
+                spaces_needed = col_pos - current_line_len + padding_len
+
+                if spaces_needed > 0:
+                    x_labels.append(" " * spaces_needed)
+                    x_labels.append(f"{Colors.DIM}{label_str}{Colors.RESET}")
+                    current_line_len = col_pos + len(label_str)
+
+            lines.append("".join(x_labels))
+
         lines.append("")
 
     all_values = []
