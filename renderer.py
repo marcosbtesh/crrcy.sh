@@ -1,4 +1,6 @@
+import math
 import shutil
+from datetime import datetime, timedelta
 
 
 class Colors:
@@ -85,5 +87,63 @@ def render_fiat_table(data: dict):
     return "\n".join(lines) + "\n"
 
 
+def _format_x_axis(date_obj, duration_delta):
+
+    print("Formatting X Axis")
+
+    days = duration_delta.days
+
+    if days < 1:
+        return date_obj.strftime("%H:%M")
+    elif days > 60:
+        return date_obj.strftime("%b %y")
+    else:
+        return date_obj.strftime("%d %b")
+
+
+def _render_graph_footer(last_updated, start_date, end_date, start_price, end_price):
+    width = get_terminal_width()
+
+    fmt = "%Y-%m-%d %H:%M UTC"
+    start_str = (
+        start_date.strftime(fmt)
+        if isinstance(start_date, datetime)
+        else str(start_date)
+    )
+    end_str = (
+        end_date.strftime(fmt) if isinstance(end_date, datetime) else str(end_date)
+    )
+
+    if isinstance(last_updated, str):
+        try:
+            last_updated = last_updated.replace("T", " ").replace("Z", " ")
+        except:
+            pass
+
+    footer_lines = []
+    footer_lines.append(f"{Colors.DIM}{'-' * width}{Colors.RESET}")
+
+    col_width = width // 3
+
+    l_col = f"Start: {start_str}"
+    m_col = f"Updated: {last_updated}"
+    r_col = f"End: {end_str}"
+
+    line = f"{Colors.CYAN}{l_col:<{col_width}}{Colors.YELLOW}{m_col:^{col_width}}{Colors.CYAN}{r_col:>{col_width}}{Colors.RESET}"
+
+    footer_lines.append(line)
+    footer_lines.append("")
+    footer_lines.append(center_text(f"{Colors.BOLD}crrcy.sh{Colors.RESET}"))
+
+    return "\n".join(footer_lines)
+
+
 def render_graph(data: dict, start_date, end_date):
     print("Imlement render graph here")
+
+    metadata = data.get("meta", {})
+    last_updated = metadata.get("last_updated_at", "Unknown")
+
+    raw_data = data.get("data", {})
+
+    points = []
