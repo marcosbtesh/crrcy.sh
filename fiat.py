@@ -1,6 +1,6 @@
 import os
 
-import freecurrencyapi
+import currencyapicom
 from dotenv import load_dotenv
 
 from cache import get_cache_batch, set_cache_batch
@@ -11,11 +11,22 @@ load_dotenv()
 class Fiat:
     def __init__(self) -> None:
         self.CACHE_PREFIX = "fiat"
-        self.client = freecurrencyapi.Client(os.getenv("FIAT_FREE_CURRENCY_API_KEY"))
+        self.client = currencyapicom.Client(os.getenv("FIAT_FREE_CURRENCY_API_KEY"))
+
+    def _normalize_rates(self, raw_data: dict) -> dict:
+        clean_rates = {}
+        for iso, data in raw_data.items():
+            if isinstance(data, dict) and "value" in data:
+                clean_rates[iso] = data["value"]
+            else:
+                clean_rates[iso] = data
+        return clean_rates
 
     async def get_latest(self):
         response = self.client.latest()
-        rates = response.get("data", {})
+        raw_rates = response.get("data", {})
+
+        rates = self._normalize_rates(raw_rates)
 
         set_cache_batch(rates, prefix=self.CACHE_PREFIX)
 
@@ -34,8 +45,9 @@ class Fiat:
         print(f"Fetching missing from API: {missing_isos}")
         try:
             response = self.client.latest(currencies=missing_isos)
-            new_rates = response.get("data", {})
+            raw_rates = response.get("data", {})
 
+            new_rates = self._normalize_rates(raw_rates)
             set_cache_batch(new_rates, prefix=self.CACHE_PREFIX)
 
             cached_batch.update(new_rates)
