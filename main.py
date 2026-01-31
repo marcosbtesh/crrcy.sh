@@ -114,7 +114,9 @@ async def get_rates(query):
 
 @app.route("/hist/<path:query>")
 @app.route("/historical/<path:query>")
+@app.route("/history/<path:query>")
 @app.route("/last/<path:query>")
+@app.route("/past/<path:query>")
 async def get_historical_rates(query):
 
     rate_limit_response = check_request_rate_limit()
