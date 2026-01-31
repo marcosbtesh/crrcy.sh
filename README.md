@@ -7,10 +7,7 @@
 
 ## 📺 Demo Video
 
-<video width="100%" controls>
-  <source src="https://www.youtube.com/watch?v=eZPj89N53oE" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+[![Demo Video](./images/demo-thumbnail.png)](https://www.youtube.com/watch?v=eZPj89N53oE)
 
 ## 📖 Description
 
