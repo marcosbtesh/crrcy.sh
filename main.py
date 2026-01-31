@@ -66,7 +66,14 @@ async def get_rates(query):
 async def get_historical_rates(query):
     parts = query.split("/")
     if len(parts) < 3:
-        return jsonify({"error": "Invalid format. Use /last/base/target/time"}), 400
+        return (
+            jsonify(
+                {
+                    "error": "Invalid format. Use /last/base/target/time or /last/base/target/time/step"
+                }
+            ),
+            400,
+        )
 
     base = parts[0].upper()
     targets = parts[1].replace(",", "+").upper().split("+")
@@ -92,6 +99,14 @@ async def get_historical_rates(query):
         step = 30
     elif days > 30:
         step = 10
+
+    if len(parts) > 3:
+        try:
+            step = int(parts[3])
+            if step <= 0:
+                return jsonify({"error": "Step must be greater than 0"}), 400
+        except (ValueError, IndexError):
+            pass
 
     end_dt = datetime.now()
     start_dt = end_dt - timedelta(days=days)
@@ -120,4 +135,4 @@ async def get_historical_rates(query):
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5001, debug=True)
+    app.run(host="0.0.0.0", port=5001, debug=False)

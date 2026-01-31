@@ -242,11 +242,6 @@ def render_graph(data: dict, start_date, end_date):
                     if graph_rows[r][col] == " ":
                         graph_rows[r][col] = f"{color}│{Colors.RESET}"
 
-        row_last = int(round(y_positions[-1]))
-        row_last = max(0, min(graph_height - 1, row_last))
-        if graph_rows[row_last][-1] == " ":
-            graph_rows[row_last][-1] = f"{Colors.BRIGHT_GREEN}●{Colors.RESET}"
-
         for row in range(graph_height):
             row_val = max_val - (row * (val_range / (graph_height - 1)))
             label = f"{Colors.WHITE}{row_val:10,.2f}{Colors.RESET} |"
