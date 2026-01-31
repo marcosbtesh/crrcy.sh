@@ -69,7 +69,7 @@ async def get_historical_rates(query):
         return jsonify({"error": "Invalid format. Use /last/base/target/time"}), 400
 
     base = parts[0].upper()
-    target = parts[1].upper()
+    targets = parts[1].replace(",", "+").upper().split("+")
     time_str = parts[2].lower()
 
     days = 0
@@ -102,7 +102,7 @@ async def get_historical_rates(query):
     try:
         data = await currency_service.get_timeseries_data(
             base=base,
-            target=target,
+            targets=targets,
             start_date=start_dt,
             end_date=end_dt,
             step=step,
@@ -123,4 +123,4 @@ async def get_historical_rates(query):
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5001, debug=False)
+    app.run(host="0.0.0.0", port=5001, debug=True)

@@ -100,13 +100,13 @@ class Currency:
     async def get_timeseries_data(
         self,
         base: str,
-        target: str,
+        targets: list[str],
         start_date: datetime,
         end_date: datetime,
         step: int = 1,
     ) -> Dict[str, Any]:
         base = base.upper()
-        target = target.upper()
+        targets = [t.upper() for t in targets]
 
         date_list = []
         curr = start_date
@@ -116,63 +116,61 @@ class Currency:
 
         today_str = datetime.now().strftime("%Y-%m-%d")
 
-        cache_keys = []
-        for d in date_list:
-            if d == today_str:
-                cache_keys.append(f"{self.CACHE_PREFIX_LATEST}:{base}:{target}")
-            else:
-                cache_keys.append(
-                    f"{self.CACHE_PREFIX_HISTORICAL}:{d}:{base}:['{target}']"
-                )
+        combined_results = {t: {} for t in targets}
 
-        cached_values = get_cache_batch(keys=cache_keys, prefix="")
-
-        results = {}
-        missing_dates = []
-
-        for i, date_str in enumerate(date_list):
-            key = cache_keys[i]
-            data = cached_values.get(key)
-
-            if data:
-                try:
-                    val = data["data"][target]["value"]
-                    results[date_str] = {"value": val}
-                except (KeyError, TypeError):
-                    missing_dates.append(date_str)
-            else:
-                missing_dates.append(date_str)
-
-        for d_str in missing_dates:
-            try:
-                if d_str == today_str:
-                    api_data = await self.client.latest(
-                        base_currency=base, currencies=[target]
-                    )
-                    key = f"{self.CACHE_PREFIX_LATEST}:{base}:{target}"
+        for target in targets:
+            cache_keys = []
+            for d in date_list:
+                if d == today_str:
+                    cache_keys.append(f"{self.CACHE_PREFIX_LATEST}:{base}:{target}")
                 else:
-                    api_data = await self.client.historical(
-                        base_currency=base, currencies=[target], date=d_str
+                    cache_keys.append(
+                        f"{self.CACHE_PREFIX_HISTORICAL}:{d}:{base}:['{target}']"
                     )
-                    key = f"{self.CACHE_PREFIX_HISTORICAL}:{d_str}:{base}:['{target}']"
-                    set_cache(key, api_data, expire_hours=48)
 
-                val = api_data["data"][target]["value"]
-                results[d_str] = {"value": val}
+            cached_values = get_cache_batch(keys=cache_keys, prefix="")
 
-            except Exception as e:
-                print(f"Failed to fetch for {d_str}: {e}")
-                continue
+            missing_dates = []
+            for i, date_str in enumerate(date_list):
+                key = cache_keys[i]
+                data = cached_values.get(key)
+                if data and "data" in data and target in data["data"]:
+                    combined_results[target][date_str] = {
+                        "value": data["data"][target]["value"]
+                    }
+                else:
+                    missing_dates.append(date_str)
+
+            for d_str in missing_dates:
+                try:
+                    if d_str == today_str:
+                        api_data = await self.client.latest(
+                            base_currency=base, currencies=[target]
+                        )
+                        set_cache(
+                            f"{self.CACHE_PREFIX_LATEST}:{base}:{target}",
+                            api_data,
+                            expire_hours=1,
+                        )
+                    else:
+                        api_data = await self.client.historical(
+                            base_currency=base, currencies=[target], date=d_str
+                        )
+                        set_cache(
+                            f"{self.CACHE_PREFIX_HISTORICAL}:{d_str}:{base}:['{target}']",
+                            api_data,
+                            expire_hours=48,
+                        )
+
+                    combined_results[target][d_str] = {
+                        "value": api_data["data"][target]["value"]
+                    }
+                except Exception:
+                    continue
 
         return {
-            "meta": {
-                "base": base,
-                "target": target,
-                "start_date": start_date.strftime("%Y-%m-%d"),
-                "end_date": end_date.strftime("%Y-%m-%d"),
-                "step_days": step,
-            },
-            "data": results,
+            "meta": {"base": base, "targets": targets, "step": step},
+            "series": combined_results,
         }
 
     # @deprectated
