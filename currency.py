@@ -53,14 +53,24 @@ class Currency:
             return cached_batch
 
         try:
-            missing_crypto = [
+
+            missing_known = [
                 s
                 for s in missing
+                if self.checker.check_which_type_of_currency(s) in ["FIAT", "CRYPTO"]
+            ]
+
+            if not missing_known:
+                return cached_batch
+
+            missing_crypto = [
+                s
+                for s in missing_known
                 if self.checker.check_which_type_of_currency(s) == "CRYPTO"
             ]
             missing_fiat = [
                 s
-                for s in missing
+                for s in missing_known
                 if self.checker.check_which_type_of_currency(s) == "FIAT"
             ]
 
@@ -124,6 +134,11 @@ class Currency:
         last_updated_at = None
 
         for target in targets:
+
+            ctype = self.checker.check_which_type_of_currency(target)
+            if ctype == "UNKNOWN":
+                continue
+
             is_symbol_crypto = (
                 self.checker.check_which_type_of_currency(target) == "CRYPTO"
             )
