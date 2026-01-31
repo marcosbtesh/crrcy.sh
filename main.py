@@ -17,7 +17,9 @@ def is_curl_client():
 def parse_path_args(arg_str):
     if not arg_str:
         return []
-    return [x.strip() for x in arg_str.replace(",", "+").split("+") if x.strip()]
+    return [
+        x.strip().upper() for x in arg_str.replace(",", "+").split("+") if x.strip()
+    ]
 
 
 @app.route("/", defaults={"query": "latest"})

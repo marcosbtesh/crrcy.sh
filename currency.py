@@ -44,25 +44,26 @@ class Currency:
             return cached_batch
 
         try:
-            if is_crypto_base:
-                response = self.client.latest(currencies=[base], base_currency="USD")
-                raw_rates = response.get("data", {})
-                rates_in_usd = self._normalize_rates(raw_rates, invert=True)
+            response = self.client.latest(currencies=missing, base_currency=base)
+            raw_rates = response.get("data", {})
 
-                final_res = {}
-                price_of_base = rates_in_usd.get(base)
-                for s in symbols:
-                    final_res[s] = price_of_base
+            should_invert_crypto = not is_crypto_base and any(
+                self.checker.check_which_type_of_currency(s) == "CRYPTO"
+                for s in missing
+            )
 
-                set_cache_batch(final_res, prefix=prefix)
-                cached_batch.update(final_res)
-            else:
-                response = self.client.latest(currencies=missing, base_currency=base)
-                raw_rates = response.get("data", {})
-                new_rates = self._normalize_rates(raw_rates, invert=False)
+            new_rates = {}
+            for iso, val in self._normalize_rates(raw_rates, invert=False).items():
+                if (
+                    should_invert_crypto
+                    and self.checker.check_which_type_of_currency(iso) == "CRYPTO"
+                ):
+                    new_rates[iso] = 1 / val if val != 0 else val
+                else:
+                    new_rates[iso] = val
 
-                set_cache_batch(new_rates, prefix=prefix)
-                cached_batch.update(new_rates)
+            set_cache_batch(new_rates, prefix=prefix)
+            cached_batch.update(new_rates)
 
         except Exception as e:
             print(f"API Error: {e}")
