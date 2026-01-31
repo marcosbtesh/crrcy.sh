@@ -7,7 +7,10 @@
 
 ## 📺 Demo Video
 
-[Watch Demo](./images/demo.mp4)
+<video width="100%" controls>
+  <source src="./images/demo.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
 
 ## 📖 Description
 
@@ -87,7 +90,8 @@ curl http://localhost:5001/latest
                      ...
 ```
 
-**Screenshot:** [See latest rates example](./images/01-latest-rates.png)
+**Screenshot:**
+![Latest rates example](./images/01-latest-rates.png)
 
 ---
 
@@ -104,7 +108,8 @@ curl http://localhost:5001/BTC
 **Parameters:**
 - `base` - Base currency code (e.g., USD, EUR, BTC)
 
-**Screenshot:** [See EUR rates example](./images/02-eur-rates.png)
+**Screenshot:**
+![EUR rates example](./images/02-eur-rates.png)
 
 ---
 
@@ -122,7 +127,8 @@ curl http://localhost:5001/USD/BTC,ETH,XRP
 - `base` - Base currency code
 - `targets` - Comma-separated list of target currencies
 
-**Screenshot:** [See multi-currency example](./images/03-multi-currency-rates.png)
+**Screenshot:**
+![Multi-currency example](./images/03-multi-currency-rates.png)
 
 ---
 
@@ -147,7 +153,8 @@ curl http://localhost:5001/last/EUR/USD/1y
   - `1y` → 1 year (365 days)
   - Numeric values (e.g., `90`) also work
 
-**Screenshot:** [See 30-day chart example](./images/04-historical-30d.png)
+**Screenshot:**
+![30-day chart example](./images/04-historical-30d.png)
 
 ---
 
@@ -167,7 +174,8 @@ curl http://localhost:5001/last/USD/BTC/90d/5
 - `time` - Time range
 - `step` - Data point interval (must be ≥ 1, max 365 points per request)
 
-**Screenshot:** [See 1-year chart with step example](./images/05-historical-1y-step.png)
+**Screenshot:**
+![1-year chart with step example](./images/05-historical-1y-step.png)
 
 ---
 
@@ -231,28 +239,32 @@ SOL  - Solana
 $ curl http://localhost:5001/last/USD/BTC/30d
 ```
 
-**Screenshot:** [See BTC chart](./images/06-btc-30d-chart.png)
+**Screenshot:**
+![BTC chart](./images/06-btc-30d-chart.png)
 
 ### Compare Multiple Cryptos
 ```bash
 $ curl http://localhost:5001/last/USD/BTC,ETH/90d
 ```
 
-**Screenshot:** [See multi-crypto comparison](./images/07-btc-eth-comparison.png)
+**Screenshot:**
+![Multi-crypto comparison](./images/07-btc-eth-comparison.png)
 
 ### Long-term Currency Tracking
 ```bash
 $ curl http://localhost:5001/last/EUR/USD,GBP/1y/10
 ```
 
-**Screenshot:** [See EUR/USD/GBP 1-year chart](./images/08-eur-longterm.png)
+**Screenshot:**
+![EUR/USD/GBP 1-year chart](./images/08-eur-longterm.png)
 
 ### Quick Currency Check
 ```bash
 $ curl http://localhost:5001/USD/EUR,GBP,JPY,CHF
 ```
 
-**Screenshot:** [See quick currency check](./images/09-quick-check.png)
+**Screenshot:**
+![Quick currency check](./images/09-quick-check.png)
 
 ---
 
