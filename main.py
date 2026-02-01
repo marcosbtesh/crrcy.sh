@@ -91,6 +91,7 @@ async def get_rates(query):
 
     try:
         if not requested_symbols or "LATEST" in [s.upper() for s in requested_symbols]:
+            base_currency = parts[1].upper()
             data = await currency_service.get_rates(base=base_currency)
         else:
             data = await currency_service.get_rates(
