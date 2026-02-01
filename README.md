@@ -319,19 +319,20 @@ FLASK_PORT=5001
 - Current rates are cached for 1 hour
 - Crypto rates are automatically inverted (showing base/crypto instead of crypto/base)
 
-## 🐛 Troubleshooting
-
-### "No data available"
-
-- Check that the currency pair exists
-- Try a shorter time range
-- Verify API key is configured
-
-### Slow responses
-
-- Check Redis is running
-- Verify API key credentials
-- Clear cache if stale data suspected
+<!-- ## 🐛 Troubleshooting -->
+<!---->
+<!-- ### "No data available" -->
+<!---->
+<!-- - Check that the currency pair exists -->
+<!-- - Try a shorter time range -->
+<!-- - Verify API key is configured -->
+<!---->
+<!-- ### Slow responses -->
+<!---->
+<!-- - Check Redis is running -->
+<!-- - Verify API key credentials -->
+<!-- - Clear cache if stale data suspected -->
+<!---->
 
 ## 🤝 Contributing
 
