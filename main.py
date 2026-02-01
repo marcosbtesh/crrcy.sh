@@ -39,7 +39,7 @@ def check_request_rate_limit():
 
     rate_limit = check_rate_limit(
         ip_address=client_ip,
-        max_requests=15,
+        max_requests=20,
         window_minutes=1,
         block_duration_minutes=60,
     )
