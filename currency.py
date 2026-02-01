@@ -46,7 +46,7 @@ class Currency:
 
             cached_rates = {k: v for k, v in cached_batch.items() if v is not None}
 
-            if cached_rates:
+            if len(cached_rates) == len(all_symbols):
                 return cached_rates
 
             api_base = "USD" if is_crypto_base else base
