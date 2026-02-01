@@ -221,24 +221,25 @@ SOL  - Solana
 - `Xy` - X years (e.g., `1y`, `2y`)
 - `X` - Numeric days (e.g., `90`, `180`)
 
-### Step Parameter
-
-- **Default:** Auto-calculated to fit terminal width
-- **Minimum:** 1
-- **Maximum:** 365 data points per request
-- **Purpose:** Control data point density in historical charts
-
-## 🎨 Chart Features
-
-- **Color-coded trends:**
-  - 🟢 Green: Price moving up
-  - 🔴 Red: Price moving down
-  - 🟡 Yellow: Price relatively flat
-
-- **Smooth curves** - Linear interpolation between data points
-- **Automatic scaling** - Y-axis adjusts to data range
-- **Time labels** - X-axis shows dates/times appropriate to range
-- **Summary stats** - Min/max prices and date range in footer
+<!-- ### Step Parameter -->
+<!---->
+<!-- - **Default:** Auto-calculated to fit terminal width -->
+<!-- - **Minimum:** 1 -->
+<!-- - **Maximum:** 365 data points per request -->
+<!-- - **Purpose:** Control data point density in historical charts -->
+<!---->
+<!-- ## 🎨 Chart Features -->
+<!---->
+<!-- - **Color-coded trends:** -->
+<!--   - 🟢 Green: Price moving up -->
+<!--   - 🔴 Red: Price moving down -->
+<!--   - 🟡 Yellow: Price relatively flat -->
+<!---->
+<!-- - **Smooth curves** - Linear interpolation between data points -->
+<!-- - **Automatic scaling** - Y-axis adjusts to data range -->
+<!-- - **Time labels** - X-axis shows dates/times appropriate to range -->
+<!-- - **Summary stats** - Min/max prices and date range in footer -->
+<!---->
 
 ## 💻 Examples
 
@@ -289,22 +290,22 @@ $ curl http://localhost:5001/USD/EUR,GBP,JPY,CHF
 <!-- - **Terminal Rendering:** ANSI color codes + Unicode line drawing -->
 <!---->
 
-## ⚙️ Configuration
-
-Create a `.env` file in the project root:
-
-```env
-# Currency API Key (get from currencyapicom)
-FIAT_FREE_CURRENCY_API_KEY=your_api_key_here
-
-# Redis Configuration
-REDIS_HOST=localhost
-REDIS_PORT=6379
-REDIS_DB=0
-
-# Server Configuration
-FLASK_PORT=5001
-```
+<!-- ## ⚙️ Configuration -->
+<!---->
+<!-- Create a `.env` file in the project root: -->
+<!---->
+<!-- ```env -->
+<!-- # Currency API Key (get from currencyapicom) -->
+<!-- FIAT_FREE_CURRENCY_API_KEY=your_api_key_here -->
+<!---->
+<!-- # Redis Configuration -->
+<!-- REDIS_HOST=localhost -->
+<!-- REDIS_PORT=6379 -->
+<!-- REDIS_DB=0 -->
+<!---->
+<!-- # Server Configuration -->
+<!-- FLASK_PORT=5001 -->
+<!-- ``` -->
 
 <!-- ## 🔐 API Limits -->
 <!---->
@@ -312,13 +313,13 @@ FLASK_PORT=5001
 <!-- - **Rate limiting:** Implemented via caching -->
 <!-- - **No authentication:** Required for public use -->
 
-## 📝 Usage Notes
-
-- Data is cached to reduce API calls
-- Historical data is permanently cached (no expiration)
-- Current rates are cached for 1 hour
-- Crypto rates are automatically inverted (showing base/crypto instead of crypto/base)
-
+<!-- ## 📝 Usage Notes -->
+<!---->
+<!-- - Data is cached to reduce API calls -->
+<!-- - Historical data is permanently cached (no expiration) -->
+<!-- - Current rates are cached for 1 hour -->
+<!-- - Crypto rates are automatically inverted (showing base/crypto instead of crypto/base) -->
+<!---->
 <!-- ## 🐛 Troubleshooting -->
 <!---->
 <!-- ### "No data available" -->
