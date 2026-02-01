@@ -1,7 +1,0 @@
-curl "http://localhost:5001/fiat?isos=EUR,CAD,JPY"
-
-curl "http://localhost:5001/fiat"
-
-curl "http://localhost:5001/crypto?coins=bitcoin,ethereum,cardano"
-
-curl "http://localhost:5001/crypto?coins=bitcoin&vs=eur"
