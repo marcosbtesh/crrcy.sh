@@ -82,7 +82,10 @@ async def get_rates(query):
 
     parts = query.split("/")
 
-    if len(parts) > 1:
+    if parts[0].upper() == "LATEST":
+        base_currency = parts[1].upper() if len(parts) > 1 else "USD"
+        requested_symbols = None
+    elif len(parts) > 1:
         base_currency = parts[0].upper()
         requested_symbols = parse_path_args(parts[1])
     else:
@@ -90,16 +93,12 @@ async def get_rates(query):
         requested_symbols = parse_path_args(parts[0])
 
     try:
-        if not requested_symbols or "LATEST" in [s.upper() for s in requested_symbols]:
-            base_currency = parts[1].upper()
-            data = await currency_service.get_rates(base=base_currency)
-        else:
-            data = await currency_service.get_rates(
-                symbols=requested_symbols, base=base_currency
-            )
+        data = await currency_service.get_rates(
+            symbols=requested_symbols, base=base_currency
+        )
 
         if is_curl_client():
-            output = renderer.render_table(data)
+            output = renderer.render_table(data, base_currency)
             return Response(output, mimetype="text/plain")
 
         return jsonify({"data": data})

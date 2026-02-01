@@ -54,10 +54,10 @@ def render_footer():
     print("")
 
 
-def render_table(data: dict):
+def render_table(data: dict, base: str):
 
     lines = []
-    lines.append(render_header("CURRENCY RATES", "Base: USD"))
+    lines.append(render_header("CURRENCY RATES", f"Base: {base.upper()}"))
     lines.append("")
 
     header = (
