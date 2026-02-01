@@ -14,12 +14,23 @@ client = redis.Redis(
     host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB, decode_responses=True
 )
 
+try:
+    config = client.config_get("appendonly")
+    if isinstance(config, dict) and config.get("appendonly") != "yes":
+        client.config_set("appendonly", "yes")
+        print("Enabled Redis AOF persistence")
+except redis.RedisError as e:
+    print(f"Warning: Could not configure Redis persistence: {e}")
+
 
 def get_cache_batch(keys: list, prefix: str):
     if not keys:
         return {}
 
-    full_keys = [f"{prefix}:{k}" for k in keys]
+    if prefix:
+        full_keys = [f"{prefix}:{k}" for k in keys]
+    else:
+        full_keys = keys
 
     values = cast(List[Any], client.mget(full_keys))
 
@@ -41,11 +52,18 @@ def set_cache_batch(data: dict, prefix: str, expire_hours=6):
         return
 
     pipe = client.pipeline()
-    expiry_seconds = expire_hours * 3600
+    expiry_seconds = expire_hours * 3600 if expire_hours is not None else None
 
     for k, v in data.items():
-        key = f"{prefix}:{k}"
-        pipe.set(key, json.dumps(v), ex=expiry_seconds)
+        if prefix:
+            key = f"{prefix}:{k}"
+        else:
+            key = k
+
+        if expiry_seconds:
+            pipe.set(key, json.dumps(v), ex=expiry_seconds)
+        else:
+            pipe.set(key, json.dumps(v))
 
     pipe.execute()
 

@@ -160,14 +160,24 @@ async def get_historical_rates(query):
         step = 1
 
     if len(parts) > 3:
+        step_str = parts[3].lower()
         try:
-            step = int(parts[3])
+            if step_str.endswith("d"):
+                step = int(step_str[:-1])
+            elif step_str.endswith("m"):
+                step = int(step_str[:-1]) * 30
+            elif step_str.endswith("y"):
+                step = int(step_str[:-1]) * 365
+            else:
+                step = int(step_str)
+
             if step <= 0:
                 return jsonify({"error": "Step must be greater than 0"}), 400
         except (ValueError, IndexError):
             pass
 
     max_data_points = 365
+
     estimated_points = days // step if step > 0 else days
     if estimated_points > max_data_points:
         return (

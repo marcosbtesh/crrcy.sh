@@ -33,8 +33,7 @@ class Currency:
     async def get_rates(self, symbols: list[str] | None = None, base: str = "USD"):
         base = base.upper()
         is_crypto_base = self.checker.check_which_type_of_currency(base) == "CRYPTO"
-        # cache_expire_hours = 1 if is_crypto_base else 12
-        # cache_expire_hours = 24 if is_crypto_base else 24
+
         cache_expire_hours = 1
 
         prefix = f"{self.CACHE_PREFIX}:{base}"
@@ -165,16 +164,21 @@ class Currency:
                 self.checker.check_which_type_of_currency(target) == "CRYPTO"
             )
 
+            cache_keys = {}
             for date_str in date_list:
                 if date_str == today_str:
-                    cache_key = f"{self.CACHE_PREFIX_LATEST}:{base}:{target}"
+                    key = f"{self.CACHE_PREFIX_LATEST}:{base}:{target}"
                 else:
-                    cache_key = (
-                        f"{self.CACHE_PREFIX_HISTORICAL}:{date_str}:{base}:{target}"
-                    )
+                    key = f"{self.CACHE_PREFIX_HISTORICAL}:{date_str}:{base}:{target}"
+                cache_keys[date_str] = key
 
-                cached_data = get_cache(cache_key)
+            cached_batch = get_cache_batch(list(cache_keys.values()), prefix="")
 
+            for date_str in date_list:
+                key = cache_keys[date_str]
+                cached_data = cached_batch.get(key)
+
+                found = False
                 if cached_data:
                     try:
                         data_dict = (
@@ -196,9 +200,12 @@ class Currency:
                                     last_updated_at = data_dict["meta"].get(
                                         "last_updated_at"
                                     )
-                                continue
+                                found = True
                     except Exception:
                         pass
+
+                if found:
+                    continue
 
                 try:
                     if date_str == today_str:
@@ -206,7 +213,7 @@ class Currency:
                             base_currency=base, currencies=[target]
                         )
                         set_cache(
-                            cache_key,
+                            key,
                             api_data,
                             expire_hours=1,
                         )
@@ -215,7 +222,7 @@ class Currency:
                             base_currency=base, currencies=[target], date=date_str
                         )
                         set_cache(
-                            cache_key,
+                            key,
                             api_data,
                             expire_hours=None,
                         )
