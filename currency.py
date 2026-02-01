@@ -41,6 +41,15 @@ class Currency:
 
         if not symbols or "LATEST" in [s.upper() for s in symbols]:
             prefix = f"{self.CACHE_PREFIX_LATEST}:{base}"
+            all_symbols = list(self.checker.fiat_list | self.checker.crypto_list)
+
+            cached_batch = get_cache_batch(keys=all_symbols, prefix=prefix)
+
+            cached_rates = {k: v for k, v in cached_batch.items() if v is not None}
+
+            if cached_rates:
+                return cached_rates
+
             api_base = "USD" if is_crypto_base else base
             response = self.client.latest(base_currency=api_base)
             raw_rates = response.get("data", {})
