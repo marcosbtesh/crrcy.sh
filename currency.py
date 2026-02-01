@@ -40,6 +40,7 @@ class Currency:
         prefix = f"{self.CACHE_PREFIX}:{base}"
 
         if not symbols or "LATEST" in [s.upper() for s in symbols]:
+            prefix = f"{self.CACHE_PREFIX_LATEST}:{base}"
             api_base = "USD" if is_crypto_base else base
             response = self.client.latest(base_currency=api_base)
             raw_rates = response.get("data", {})
