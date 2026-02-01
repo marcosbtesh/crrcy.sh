@@ -280,13 +280,14 @@ $ curl http://localhost:5001/USD/EUR,GBP,JPY,CHF
 
 ---
 
-## 🛠️ Technical Stack
-
-- **Framework:** Flask with async route handlers
-- **Currency Data:** currencyapicom API
-- **Caching:** Redis for performance
-- **Language:** Python 3.8+
-- **Terminal Rendering:** ANSI color codes + Unicode line drawing
+<!-- ## 🛠️ Technical Stack -->
+<!---->
+<!-- - **Framework:** Flask with async route handlers -->
+<!-- - **Currency Data:** currencyapicom API -->
+<!-- - **Caching:** Redis for performance -->
+<!-- - **Language:** Python 3.8+ -->
+<!-- - **Terminal Rendering:** ANSI color codes + Unicode line drawing -->
+<!---->
 
 ## ⚙️ Configuration
 
@@ -302,15 +303,14 @@ REDIS_PORT=6379
 REDIS_DB=0
 
 # Server Configuration
-FLASK_ENV=production
 FLASK_PORT=5001
 ```
 
-## 🔐 API Limits
-
-- **Data points:** Maximum 365 per request (enforced via step parameter)
-- **Rate limiting:** Implemented via caching
-- **No authentication:** Required for public use
+<!-- ## 🔐 API Limits -->
+<!---->
+<!-- - **Data points:** Maximum 365 per request (enforced via step parameter) -->
+<!-- - **Rate limiting:** Implemented via caching -->
+<!-- - **No authentication:** Required for public use -->
 
 ## 📝 Usage Notes
 
