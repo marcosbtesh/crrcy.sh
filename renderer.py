@@ -18,7 +18,7 @@ class Colors:
     MAGENTA = "\033[35m"
     CYAN = "\033[36m"
     WHITE = "\033[37m"
-    ORANGE = "\033[38;2;255;165;0m"
+    ORANGE = "\033[38m"  # ;2;255;165;0m"
 
     BRIGHT_GREEN = "\033[92m"
     BRIGHT_YELLOW = "\033[93m"
@@ -78,7 +78,7 @@ def render_table(data: dict):
         if iso == "BTC":
             color = Colors.ORANGE
         try:
-            rate_str = f"{rate:,.4f}"
+            rate_str = f"{rate:,.2f}"
         except (ValueError, TypeError):
             rate_str = str(rate)
 
@@ -215,7 +215,9 @@ def _format_x_axis(date_obj, duration_delta):
         return date_obj.strftime("%d %b %y")
 
 
-def _render_graph_footer(last_updated, start_date, end_date, min_val, max_val):
+def _render_graph_footer(
+    last_updated, start_date, end_date, min_val, max_val, current_val
+):
     width = get_terminal_width()
 
     fmt = "%Y-%m-%d %H:%M UTC"
@@ -272,8 +274,7 @@ def _render_graph_footer(last_updated, start_date, end_date, min_val, max_val):
 
     footer_lines.append(line)
 
-    # Add min/max line
-    min_max_line = f"{Colors.GREEN}Min: {min_val:,.2f}{Colors.RESET}  {Colors.RED}Max: {max_val:,.2f}{Colors.RESET}"
+    min_max_line = f"{Colors.GREEN}Min: {min_val:,.2f}{Colors.RESET}  {Colors.RED}Max: {max_val:,.2f} {Colors.BRIGHT_CYAN}Current: {current_val:,.2f}{Colors.RESET}"
     footer_lines.append(center_text(min_max_line))
 
     footer_lines.append("")
@@ -327,6 +328,8 @@ def render_graph(data: dict, start_date, end_date):
                 continue
 
         points.sort(key=lambda x: x[0])
+
+        latest_target_val = points[-1][1] if points else 0
 
         if not points or len(points) < 2:
             lines.append(f"{Colors.RED}Insufficient data for {target}.{Colors.RESET}")
@@ -491,9 +494,10 @@ def render_graph(data: dict, start_date, end_date):
 
     min_all = min(all_values) if all_values else 0
     max_all = max(all_values) if all_values else 0
+    current_val = latest_target_val
 
     footer_lines = _render_graph_footer(
-        last_updated, start_date, end_date, min_all, max_all
+        last_updated, start_date, end_date, min_all, max_all, current_val
     )
     lines.append(footer_lines)
 
