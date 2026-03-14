@@ -1,18 +1,32 @@
 #include "config.h"
+
 #include "LCDIC2.h"
+
 #include <WiFi.h>
-#include <HTTPClient.h> 
+
+#include <HTTPClient.h>
+
 #include <ArduinoJson.h>
 
 LCDIC2 lcd(0x27, 16, 2);
 
 // My Global Variables
-const char* SYMBOLS[] = {
-    "ARS", "EUR", "BTC", "ETH", "JPY", 
-    "GBP", "USDT", "SOL", "AUD", "CAD", 
-    "BNB", "CHF", "XRP"
+const char * SYMBOLS[] = {
+  "ARS",
+  "EUR",
+  "BTC",
+  "ETH",
+  "JPY",
+  "GBP",
+  "USDT",
+  "SOL",
+  "AUD",
+  "CAD",
+  "BNB",
+  "CHF",
+  "XRP"
 };
-const char* SELECTED_SYMBOL = SYMBOLS[0];
+const char * SELECTED_SYMBOL = SYMBOLS[0];
 
 const char BASE_CURRENCY = "USD";
 
@@ -30,29 +44,26 @@ const int BUTTON_PIN = 5;
 char TIMEFRAME_PERIOD = "d"; // "d", "m" or "y"
 int TIMEFRAME_VALUE = 7;
 
-
 void setup() {
 
-  
- Serial.begin(115200);
+  Serial.begin(115200);
 
- WiFi.mode(WIFI_STA);
- WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
-//  if (lcd.begin()) lcd.print("Hello, World!");
+  //  if (lcd.begin()) lcd.print("Hello, World!");
 
- pinMode(LED_GREEN_PIN, OUTPUT);
- pinMode(LED_YELLOW_PIN, OUTPUT);
- pinMode(LED_RED_PIN, OUTPUT);
+  pinMode(LED_GREEN_PIN, OUTPUT);
+  pinMode(LED_YELLOW_PIN, OUTPUT);
+  pinMode(LED_RED_PIN, OUTPUT);
 
- pinMode(BUTTON_PIN, INPUT_PULLDOWN);
+  pinMode(BUTTON_PIN, INPUT_PULLDOWN);
 
 }
 
 void loop() {
- 
 
- unsigned long current_millis = millis();
+  unsigned long current_millis = millis();
 
   if ((current_millis / 1000) % 2 == 0) {
     digitalWrite(LED_BUILTIN, HIGH);
@@ -60,27 +71,23 @@ void loop() {
     digitalWrite(LED_BUILTIN, LOW);
   }
 
- if (WiFi.status() == WL_CONNECTED) {
+  if (WiFi.status() == WL_CONNECTED) {
     Serial.println("WiFi connected!");
     getSymbolPrice();
     delay(5000);
-  }  
-
+  }
 
 }
 
 void refresh_prices() {
 
-
 }
-
 
 void getSymbolPrice() {
   handleRequest(SELECTED_SYMBOL);
 }
 
-
-void handleRequest(const char* endpoint) {
+void handleRequest(const char * endpoint) {
   if (WiFi.status() != WL_CONNECTED) {
     Serial.println("WiFi not connected");
     return;
@@ -89,27 +96,26 @@ void handleRequest(const char* endpoint) {
   HTTPClient http;
 
   String url = String(API_ENDPOINT) + "/" + String(endpoint);
-  
+
   http.begin(url);
-  
+
   int httpResponseCode = http.GET();
 
   if (httpResponseCode > 0) {
     Serial.print("HTTP Response code: ");
     Serial.println(httpResponseCode);
 
-    JsonDocument doc; 
+    JsonDocument doc;
     DeserializationError error = deserializeJson(doc, http.getStream());
 
     if (!error) {
 
-      float price = doc["data"][endpoint]; 
+      float price = doc["data"][endpoint];
       Serial.print("Symbol: ");
       Serial.print(endpoint);
       Serial.print(" | Price: ");
       Serial.println(price);
-      
-      
+
     } else {
       Serial.print("deserializeJson() failed: ");
       Serial.println(error.f_str());
@@ -119,33 +125,28 @@ void handleRequest(const char* endpoint) {
     Serial.println(httpResponseCode);
   }
 
-  http.end(); 
+  http.end();
 }
 
 // Historic Prices
 
-
 void getHistoricPrice() {
-
   handleRequest(printf("hist/%s/%s/%s%d", BASE_CURRENCY, SELECTED_SYMBOL, TIMEFRAME_PERIOD, TIMEFRAME_VALUE))
-
 }
-
 
 void handleLedsHistoricPrices(float min, float max) {
 
   int change = _calculateChangeMinMax();
 
-  if(change < -VARIATION_CHANGE_PERCENT) ) {
-    digitalWrite(LED_GREEN_PIN, HIGH);
-  } else if (change > VARIATION_CHANGE_PERCENT) {
-    digitalWrite(LED_RED_PIN, HIGH);
-  } else {
-    digitalWrite(LED_YELLOW_PIN, HIGH);
-  }
-
+  if (change < -VARIATION_CHANGE_PERCENT)) {
+  digitalWrite(LED_GREEN_PIN, HIGH);
+} else if (change > VARIATION_CHANGE_PERCENT) {
+  digitalWrite(LED_RED_PIN, HIGH);
+} else {
+  digitalWrite(LED_YELLOW_PIN, HIGH);
 }
 
+}
 
 int _calculateChangeMinMax(float min, float max) {
 
@@ -154,5 +155,3 @@ int _calculateChangeMinMax(float min, float max) {
 
   return v2 - v1;
 }
-
-
