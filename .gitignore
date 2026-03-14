@@ -3,3 +3,4 @@
 .env
 __pycache__
 _dev
+Arduino/main/config.h
