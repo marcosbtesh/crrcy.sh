@@ -8,7 +8,7 @@ LCDIC2 lcd(0x27, 16, 2);
 
 // My Global Variables
 const char* SYMBOLS[] = {
-    "USD", "EUR", "BTC", "ETH", "JPY", 
+    "ARS", "EUR", "BTC", "ETH", "JPY", 
     "GBP", "USDT", "SOL", "AUD", "CAD", 
     "BNB", "CHF", "XRP"
 };
@@ -52,8 +52,14 @@ void loop() {
     digitalWrite(LED_BUILTIN, LOW);
   }
 
-   getSymbolPrice();
-  delay(10000000);
+ if (WiFi.status() == WL_CONNECTED) {
+    Serial.println("WiFi connected!");
+    getSymbolPrice();
+    delay(5000);
+  }  
+
+  
+  
 
 
 
@@ -66,11 +72,8 @@ void refresh_prices() {
 
 
 void getSymbolPrice() {
-
   handleRequest(SELECTED_SYMBOL);
-
 }
-
 
 
 void handleRequest(const char* endpoint) {
@@ -95,7 +98,8 @@ void handleRequest(const char* endpoint) {
     DeserializationError error = deserializeJson(doc, http.getStream());
 
     if (!error) {
-      float price = doc["price"]; 
+
+      float price = doc["data"][endpoint]; 
       Serial.print("Symbol: ");
       Serial.print(endpoint);
       Serial.print(" | Price: ");
@@ -114,5 +118,31 @@ void handleRequest(const char* endpoint) {
   http.end(); 
 }
 
+
+
+// Historic Prices
+
+
+void getHistoricPrice() {
+
+}
+
+
+void handleLedsHistoricPrices() {
+
+
+  int change = _calculateChangeMinMax();
+
+
+}
+
+
+int _calculateChangeMinMax(float min, float max) {
+
+  int v1 = round(min);
+  int v2 = round(max);
+
+  return v2 - v1;
+}
 
 
