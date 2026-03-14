@@ -131,7 +131,7 @@ JsonDocument handleRequest(const char * endpoint) {
 
   http.end();
 
-  return JsonDocument {}; 
+  return JsonDocument {};
 }
 
 // Historic Prices
@@ -151,7 +151,7 @@ void getHistoricPrice() {
 
   JsonObject prices = response["data"][SELECTED_SYMBOL];
 
-  for (JsonPair kv : prices) {
+  for (JsonPair kv: prices) {
     float value = kv.value()["value"];
 
     if (value < min) min = value;
@@ -172,19 +172,15 @@ void handleLedsHistoricPrices(float min, float max) {
   int change = _calculateChangeMinMax(min, max);
 
   if (change < -VARIATION_CHANGE_PERCENT) {
-  digitalWrite(LED_GREEN_PIN, HIGH);
-} else if (change > VARIATION_CHANGE_PERCENT) {
-  digitalWrite(LED_RED_PIN, HIGH);
-} else {
-  digitalWrite(LED_YELLOW_PIN, HIGH);
-}
+    digitalWrite(LED_GREEN_PIN, HIGH);
+  } else if (change > VARIATION_CHANGE_PERCENT) {
+    digitalWrite(LED_RED_PIN, HIGH);
+  } else {
+    digitalWrite(LED_YELLOW_PIN, HIGH);
+  }
 
 }
 
-int _calculateChangeMinMax(float min, float max) {
-
-  int v1 = round(min);
-  int v2 = round(max);
-
-  return v2 - v1;
+float _calculateChangeMinMax(float min, float max) {
+  return ((max - min) / min) * 100.0;
 }
