@@ -1,5 +1,20 @@
+#include "config.h"
+
+// My Global Variables
+
+const char* SYMBOLS[] = {
+    "USD", "EUR", "BTC", "ETH", "JPY", 
+    "GBP", "USDT", "SOL", "AUD", "CAD", 
+    "BNB", "CHF", "XRP"
+};
+
+char* SELECTED_SYMBOL = SYMBOLS[0]; 
+
+
+
 void setup() {
-  // put your setup code here, to run once:
+ Serial.begin(115200);
+
 
 }
 
