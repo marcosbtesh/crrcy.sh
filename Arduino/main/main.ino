@@ -20,6 +20,8 @@ const int LED_GREEN_PIN = 21;
 const int LED_YELLOW_PIN = 22;
 const int LED_RED_PIN = 23;
 
+const float VARIATION_CHANGE_PERCENT = 0.2;
+
 // BUTTON
 const int BUTTON_PIN = 5;
 
@@ -57,10 +59,6 @@ void loop() {
     getSymbolPrice();
     delay(5000);
   }  
-
-  
-  
-
 
 
 }
@@ -125,14 +123,22 @@ void handleRequest(const char* endpoint) {
 
 void getHistoricPrice() {
 
+  handleRequest(printf("hist/%s/%s/%s", BASE_CURRENCY, SELECTED_SYMBOL, SELECTED_TIMEFRAME))
+
 }
 
 
-void handleLedsHistoricPrices() {
-
+void handleLedsHistoricPrices(float min, float max) {
 
   int change = _calculateChangeMinMax();
 
+  if(change < -VARIATION_CHANGE_PERCENT) ) {
+    digitalWrite(LED_GREEN_PIN, HIGH);
+  } else if (change > VARIATION_CHANGE_PERCENT) {
+    digitalWrite(LED_RED_PIN, HIGH);
+  } else {
+    digitalWrite(LED_YELLOW_PIN, HIGH);
+  }
 
 }
 
