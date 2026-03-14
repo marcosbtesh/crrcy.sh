@@ -12,8 +12,9 @@ const char* SYMBOLS[] = {
     "GBP", "USDT", "SOL", "AUD", "CAD", 
     "BNB", "CHF", "XRP"
 };
+const char* SELECTED_SYMBOL = SYMBOLS[0];
 
-const char* SELECTED_SYMBOL = SYMBOLS[0]; 
+const char BASE_CURRENCY = "USD";
 
 // LED's 
 const int LED_GREEN_PIN = 21;
@@ -24,6 +25,11 @@ const float VARIATION_CHANGE_PERCENT = 0.2;
 
 // BUTTON
 const int BUTTON_PIN = 5;
+
+// TIMEFRAME
+char TIMEFRAME_PERIOD = "d"; // "d", "m" or "y"
+int TIMEFRAME_VALUE = 7;
+
 
 void setup() {
 
@@ -116,14 +122,12 @@ void handleRequest(const char* endpoint) {
   http.end(); 
 }
 
-
-
 // Historic Prices
 
 
 void getHistoricPrice() {
 
-  handleRequest(printf("hist/%s/%s/%s", BASE_CURRENCY, SELECTED_SYMBOL, SELECTED_TIMEFRAME))
+  handleRequest(printf("hist/%s/%s/%s%d", BASE_CURRENCY, SELECTED_SYMBOL, TIMEFRAME_PERIOD, TIMEFRAME_VALUE))
 
 }
 
