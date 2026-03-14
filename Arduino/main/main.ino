@@ -75,14 +75,16 @@ void loop() {
 
   if (WiFi.status() == WL_CONNECTED) {
     Serial.println("WiFi connected!");
-    getSymbolPrice();
+    // getSymbolPrice();
+    getHistoricPrice();
     delay(5000);
   }
 
 }
 
+// Single Symbol Prices
 void refresh_prices() {
-
+  getSymbolPrice();
 }
 
 void getSymbolPrice() {
@@ -181,6 +183,7 @@ void handleLedsHistoricPrices(float min, float max) {
 
 }
 
+// Utility Methods
 float _calculateChangeMinMax(float min, float max) {
   return ((max - min) / min) * 100.0;
 }
