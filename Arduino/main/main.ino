@@ -4,6 +4,8 @@
 
 #include <WiFi.h>
 
+#include <float.h>
+
 #include <HTTPClient.h>
 
 #include <ArduinoJson.h>
@@ -133,13 +135,38 @@ JsonDocument handleRequest(const char * endpoint) {
 }
 
 // Historic Prices
-
 void getHistoricPrice() {
   char endpoint[64];
   snprintf(endpoint, sizeof(endpoint), "hist/%s/%s/%s%d", BASE_CURRENCY, SELECTED_SYMBOL, TIMEFRAME_PERIOD, TIMEFRAME_VALUE);
 
   JsonDocument response = handleRequest(endpoint);
+
+  if (response.isNull()) {
+    Serial.println("Invalid JSON response");
+    return;
+  }
+
+  float min = FLT_MAX;
+  float max = -FLT_MAX;
+
+  JsonObject prices = response["data"][SELECTED_SYMBOL];
+
+  for (JsonPair kv : prices) {
+    float value = kv.value()["value"];
+
+    if (value < min) min = value;
+    if (value > max) max = value;
+  }
+
+  Serial.print("Min: ");
+  Serial.println(min);
+
+  Serial.print("Max: ");
+  Serial.println(max);
+
+  handleLedsHistoricPrices(min, max);
 }
+
 void handleLedsHistoricPrices(float min, float max) {
 
   int change = _calculateChangeMinMax(min, max);
