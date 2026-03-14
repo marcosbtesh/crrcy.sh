@@ -28,7 +28,7 @@ const char * SYMBOLS[] = {
 };
 const char * SELECTED_SYMBOL = SYMBOLS[0];
 
-const char BASE_CURRENCY = "USD";
+const char * BASE_CURRENCY = "USD";
 
 // LED's 
 const int LED_GREEN_PIN = 21;
@@ -41,7 +41,7 @@ const float VARIATION_CHANGE_PERCENT = 0.2;
 const int BUTTON_PIN = 5;
 
 // TIMEFRAME
-char TIMEFRAME_PERIOD = "d"; // "d", "m" or "y"
+const char * TIMEFRAME_PERIOD = "d"; // "d", "m" or "y"
 int TIMEFRAME_VALUE = 7;
 
 void setup() {
@@ -87,10 +87,10 @@ void getSymbolPrice() {
   handleRequest(SELECTED_SYMBOL);
 }
 
-void handleRequest(const char * endpoint) {
+JsonDocument handleRequest(const char * endpoint) {
   if (WiFi.status() != WL_CONNECTED) {
     Serial.println("WiFi not connected");
-    return;
+    return {};
   }
 
   HTTPClient http;
@@ -116,6 +116,8 @@ void handleRequest(const char * endpoint) {
       Serial.print(" | Price: ");
       Serial.println(price);
 
+      return doc;
+
     } else {
       Serial.print("deserializeJson() failed: ");
       Serial.println(error.f_str());
@@ -126,19 +128,23 @@ void handleRequest(const char * endpoint) {
   }
 
   http.end();
+
+  return JsonDocument {}; 
 }
 
 // Historic Prices
 
 void getHistoricPrice() {
-  handleRequest(printf("hist/%s/%s/%s%d", BASE_CURRENCY, SELECTED_SYMBOL, TIMEFRAME_PERIOD, TIMEFRAME_VALUE))
-}
+  char endpoint[64];
+  snprintf(endpoint, sizeof(endpoint), "hist/%s/%s/%s%d", BASE_CURRENCY, SELECTED_SYMBOL, TIMEFRAME_PERIOD, TIMEFRAME_VALUE);
 
+  JsonDocument response = handleRequest(endpoint);
+}
 void handleLedsHistoricPrices(float min, float max) {
 
-  int change = _calculateChangeMinMax();
+  int change = _calculateChangeMinMax(min, max);
 
-  if (change < -VARIATION_CHANGE_PERCENT)) {
+  if (change < -VARIATION_CHANGE_PERCENT) {
   digitalWrite(LED_GREEN_PIN, HIGH);
 } else if (change > VARIATION_CHANGE_PERCENT) {
   digitalWrite(LED_RED_PIN, HIGH);
