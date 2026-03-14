@@ -1,0 +1,3 @@
+#define API_ENDPOINT "" // NO TRAILING SLASH
+#define WIFI_SSID ""
+#define WIFI_PASSWORD ""
