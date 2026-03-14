@@ -1,19 +1,19 @@
 #include "config.h"
 #include "LCDIC2.h"
 #include <WiFi.h>
-#include <esp_http_client.h>
-
+#include <HTTPClient.h> 
+#include <ArduinoJson.h>
 
 LCDIC2 lcd(0x27, 16, 2);
 
 // My Global Variables
-char* SYMBOLS[] = {
+const char* SYMBOLS[] = {
     "USD", "EUR", "BTC", "ETH", "JPY", 
     "GBP", "USDT", "SOL", "AUD", "CAD", 
     "BNB", "CHF", "XRP"
 };
 
-char* SELECTED_SYMBOL = SYMBOLS[0]; 
+const char* SELECTED_SYMBOL = SYMBOLS[0]; 
 
 // LED's 
 const int LED_GREEN_PIN = 21;
@@ -31,7 +31,7 @@ void setup() {
  WiFi.mode(WIFI_STA);
  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
- if (lcd.begin()) lcd.print("Hello, World!");
+//  if (lcd.begin()) lcd.print("Hello, World!");
 
  pinMode(LED_GREEN_PIN, OUTPUT);
  pinMode(LED_YELLOW_PIN, OUTPUT);
@@ -42,19 +42,24 @@ void setup() {
 }
 
 void loop() {
-   for (uint8_t i = 0; i < 15; i++) {
-    lcd.setCursor(i, 1);
-    delay(250);
+ 
+
+ unsigned long current_millis = millis();
+
+  if ((current_millis / 1000) % 2 == 0) {
+    digitalWrite(LED_BUILTIN, HIGH);
+  } else {
+    digitalWrite(LED_BUILTIN, LOW);
   }
-  for (uint8_t i = 15; i > 0; i--) {
-    lcd.setCursor(i, 1);
-    delay(250);
-  }
+
+   getSymbolPrice();
+  delay(10000000);
+
+
 
 }
 
 void refresh_prices() {
-
 
 
 }
@@ -62,38 +67,52 @@ void refresh_prices() {
 
 void getSymbolPrice() {
 
+  handleRequest(SELECTED_SYMBOL);
 
 }
 
-void handleRequest(char endpoint, esp_http_client_method_t method) {
 
-  if(WiFi.status() != WL_CONNECTED) {
-    Serial.println("WiFi is not connected!")
+
+void handleRequest(const char* endpoint) {
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("WiFi not connected");
     return;
   }
 
-
   HTTPClient http;
 
-  char route = API_ENDPOINT + endpoint;
-
-  http.begin(route);
+  String url = String(API_ENDPOINT) + "/" + String(endpoint);
   
+  http.begin(url);
+  
+  int httpResponseCode = http.GET();
 
-  int response = http.method();
+  if (httpResponseCode > 0) {
+    Serial.print("HTTP Response code: ");
+    Serial.println(httpResponseCode);
 
-  if(response > 0) {
-    Serial.print("HTTP Response Code: ");
-    Serial.println(response);
-    
+    JsonDocument doc; 
+    DeserializationError error = deserializeJson(doc, http.getStream());
+
+    if (!error) {
+      float price = doc["price"]; 
+      Serial.print("Symbol: ");
+      Serial.print(endpoint);
+      Serial.print(" | Price: ");
+      Serial.println(price);
+      
+      
+    } else {
+      Serial.print("deserializeJson() failed: ");
+      Serial.println(error.f_str());
+    }
+  } else {
+    Serial.print("Error code: ");
+    Serial.println(httpResponseCode);
   }
 
-
-
-
-
+  http.end(); 
 }
-
 
 
 
