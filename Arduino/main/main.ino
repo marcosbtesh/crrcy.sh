@@ -52,7 +52,7 @@ char keys[ROWS][COLS] = {
   {'1','2','3','4'},
   {'5','6','7','8'},
   {'9','10','11','12'},
-  {'13','*','$','#'}
+  {'13','<','#','>'}
 };
 
 byte rowPins[ROWS] = {5, 4, 3, 2}; //connect to the row pinouts of the keypad
@@ -234,7 +234,15 @@ void render_lcd_bottom() {
 
 void handle_keypad_press(char key) {
 
-
+  if(key == "<") {
+    // Handle less
+  } else if (key == ">") {
+    // Handle More
+  } else if (key == "#") {
+    // Handle timeframe
+  } else {
+    // handle switching back to SELECTED_SYMBOL
+  }
 
 
 }
