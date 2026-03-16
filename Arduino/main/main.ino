@@ -128,7 +128,7 @@ void loop() {
   }
 
   if (WiFi.status() != WL_CONNECTED) {
-
+    render_lcd_wifi_not_connected();
     return;
 
   }
@@ -260,6 +260,14 @@ float _calculateChangeMinMax(float min, float max) {
 void render_lcd() {
   render_lcd_top();
   render_lcd_bottom();
+}
+
+
+void render_lcd_wifi_not_connected() {
+  lcd.clear();
+  lcd.setCursor(0,0);
+
+  lcd.print("WiFi Not Connected! Trying to connect!");
 }
 
 void render_lcd_top() {
