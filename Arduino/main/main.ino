@@ -51,7 +51,7 @@ int last_button_state = LOW;
 
 // KEYPAD
 const byte ROWS = 4; //four rows
-const byte COLS = 4; //three columns
+const byte COLS = 4; //four columns
 
 char keys[ROWS][COLS] = {
   {
