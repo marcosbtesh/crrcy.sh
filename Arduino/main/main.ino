@@ -46,7 +46,7 @@ const int LED_RED_PIN = 23;
 const float VARIATION_CHANGE_PERCENT = 0.2;
 
 // BUTTON
-const int BUTTON_PIN = 13;
+const int BUTTON_PIN = 27; // Or 32
 int last_button_state = LOW;
 
 // KEYPAD
