@@ -148,7 +148,7 @@ void loop() {
   }
 
   last_button_state = reading;
-
+  render_lcd();
 }
 
 // Single Symbol Prices
@@ -346,6 +346,7 @@ void handle_button_press() {
   if (HISTORY_MODE == true) {
     getHistoricPrice();
   } else {
+    HISTORY_MODE = false;
     refresh_prices();
   }
 }
