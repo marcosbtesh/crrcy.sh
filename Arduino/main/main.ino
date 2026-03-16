@@ -121,6 +121,18 @@ void loop() {
 
   unsigned long current_millis = millis();
 
+  if ((current_millis / 1000) % 2 == 0) {
+    digitalWrite(LED_BUILTIN, HIGH);
+  } else {
+    digitalWrite(LED_BUILTIN, LOW);
+  }
+
+  if (WiFi.status() != WL_CONNECTED) {
+
+    return;
+
+  }
+
   char key = keypad.getKey();
 
   if (key) {
@@ -129,24 +141,13 @@ void loop() {
 
   int reading = digitalRead(BUTTON_PIN);
 
-  if(reading != last_button_state) {
-    if(reading == HIGH) {
+  if (reading != last_button_state) {
+    if (reading == HIGH) {
       handle_button_press();
     }
   }
 
   last_button_state = reading;
-
-  if ((current_millis / 1000) % 2 == 0) {
-    digitalWrite(LED_BUILTIN, HIGH);
-  } else {
-    digitalWrite(LED_BUILTIN, LOW);
-  }
-
-  if (WiFi.status() == WL_CONNECTED) {
-    
-    
-  }
 
 }
 
@@ -342,7 +343,7 @@ void handle_change_timeframe_interval() {
 // Button
 
 void handle_button_press() {
-  if(HISTORY_MODE == true) {
+  if (HISTORY_MODE == true) {
     getHistoricPrice();
   } else {
     refresh_prices();
