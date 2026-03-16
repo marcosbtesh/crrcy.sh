@@ -53,18 +53,45 @@ const byte ROWS = 4; //four rows
 const byte COLS = 4; //three columns
 
 char keys[ROWS][COLS] = {
-  {'1','2','3','4'},
-  {'5','6','7','8'},
-  {'9','A','B','C'},  // A=10, B=11, C=12
-  {'D','<','#','>'}   // D=13
+  {
+    '1',
+    '2',
+    '3',
+    '4'
+  },
+  {
+    '5',
+    '6',
+    '7',
+    '8'
+  },
+  {
+    '9',
+    'A',
+    'B',
+    'C'
+  }, // A=10, B=11, C=12
+  {
+    'D',
+    '<',
+    '#',
+    '>'
+  } // D=13
 };
 
-byte rowPins[ROWS] = {5, 4, 3, 2}; //connect to the row pinouts of the keypad
-byte colPins[COLS] = {8, 7, 6}; //connect to the column pinouts of the keypad
+byte rowPins[ROWS] = {
+  5,
+  4,
+  3,
+  2
+}; //connect to the row pinouts of the keypad
+byte colPins[COLS] = {
+  8,
+  7,
+  6
+}; //connect to the column pinouts of the keypad
 
-
-Keypad keypad = Keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS );
-
+Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 
 // TIMEFRAME
 const char * TIMEFRAME_PERIOD = "d"; // "d", "m" or "y"
@@ -94,11 +121,10 @@ void loop() {
   unsigned long current_millis = millis();
 
   char key = keypad.getKey();
-  
-  if(key) {
+
+  if (key) {
     handle_keypad_press(key);
   }
-
 
   if ((current_millis / 1000) % 2 == 0) {
     digitalWrite(LED_BUILTIN, HIGH);
@@ -185,14 +211,16 @@ void getHistoricPrice() {
 
   JsonObject prices = response["data"][SELECTED_SYMBOL];
 
-  for (JsonPair kv : prices) {
+  for (JsonPair kv: prices) {
     float value = kv.value()["value"];
     if (value < price_min) price_min = value;
     if (value > price_max) price_max = value;
   }
 
-  Serial.print("Min: "); Serial.println(price_min);
-  Serial.print("Max: "); Serial.println(price_max);
+  Serial.print("Min: ");
+  Serial.println(price_min);
+  Serial.print("Max: ");
+  Serial.println(price_max);
 
   current_min = price_min;
   current_max = price_max;
@@ -218,14 +246,11 @@ float _calculateChangeMinMax(float min, float max) {
   return ((max - min) / min) * 100.0;
 }
 
-
-
 // LCD
 void render_lcd() {
   render_lcd_top();
   render_lcd_bottom();
 }
-
 
 void render_lcd_top() {
   lcd.clear();
@@ -274,7 +299,7 @@ void handle_keypad_press(char key) {
     handle_change_timeframe_interval();
   } else {
     int num;
-    if      (key >= '1' && key <= '9') num = key - '1';      
+    if (key >= '1' && key <= '9') num = key - '1';
     else if (key == 'A') num = 9;
     else if (key == 'B') num = 10;
     else if (key == 'C') num = 11;
@@ -303,5 +328,3 @@ void handle_change_timeframe_interval() {
     TIMEFRAME_PERIOD = "d";
   }
 }
-
-
