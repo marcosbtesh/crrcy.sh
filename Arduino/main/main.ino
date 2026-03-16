@@ -10,6 +10,8 @@
 
 #include <ArduinoJson.h>
 
+#include <Keypad.h>
+
 LCDIC2 lcd(0x27, 16, 2);
 
 // My Global Variables
@@ -40,7 +42,25 @@ const int LED_RED_PIN = 23;
 const float VARIATION_CHANGE_PERCENT = 0.2;
 
 // BUTTON
-const int BUTTON_PIN = 5;
+const int BUTTON_PIN = 0; // change this 
+
+// KEYPAD
+const byte ROWS = 4; //four rows
+const byte COLS = 4; //three columns
+
+char keys[ROWS][COLS] = {
+  {'1','2','3','4'},
+  {'5','6','7','8'},
+  {'9','10','11','12'},
+  {'13','*','$','#'}
+};
+
+byte rowPins[ROWS] = {5, 4, 3, 2}; //connect to the row pinouts of the keypad
+byte colPins[COLS] = {8, 7, 6}; //connect to the column pinouts of the keypad
+
+
+Keypad keypad = Keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS );
+
 
 // TIMEFRAME
 const char * TIMEFRAME_PERIOD = "d"; // "d", "m" or "y"
@@ -66,6 +86,13 @@ void setup() {
 void loop() {
 
   unsigned long current_millis = millis();
+
+  char key = keypad.getKey();
+  
+  if(key) {
+    handle_keypad_press(key);
+  }
+
 
   if ((current_millis / 1000) % 2 == 0) {
     digitalWrite(LED_BUILTIN, HIGH);
@@ -186,4 +213,28 @@ void handleLedsHistoricPrices(float min, float max) {
 // Utility Methods
 float _calculateChangeMinMax(float min, float max) {
   return ((max - min) / min) * 100.0;
+}
+
+
+
+// LCD
+
+void render_lcd_top() {
+
+}
+
+
+void render_lcd_bottom() {
+
+}
+
+
+
+// Keypad
+
+void handle_keypad_press(char key) {
+
+
+
+
 }
