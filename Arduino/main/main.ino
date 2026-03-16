@@ -235,13 +235,14 @@ void render_lcd_bottom() {
 void handle_keypad_press(char key) {
 
   if(key == "<") {
-    // Handle less
+    handle_less_timeframe();
   } else if (key == ">") {
-    // Handle More
+    handle_more_timeframe();
   } else if (key == "#") {
-    // Handle timeframe
+    handle_change_timeframe_interval();
   } else {
-    // handle switching back to SELECTED_SYMBOL
+    int num = key - '0';
+    SELECTED_SYMBOL = SYMBOLS[num];
   }
 
 
@@ -251,16 +252,22 @@ void handle_keypad_press(char key) {
 
 // Timeframes
 
-
 void handle_less_timeframe() {
-
+  TIMEFRAME_VALUE = TIMEFRAME_VALUE - 1;
 }
 
-
 void handle_more_timeframe() {
-
+  TIMEFRAME_VALUE = TIMEFRAME_VALUE + 1;
 }
 
 void handle_change_timeframe_interval() {
-
+  if(TIMEFRAME_PERIOD == "d") {
+    TIMEFRAME_PERIOD = "m";
+  } else if(TIMEFRAME_PERIOD == "m") {
+    TIMEFRAME_PERIOD = "y";
+  } else if (TIMEFRAME_PERIOD == "y") {
+    TIMEFRAME_PERIOD = "d";
+  }
 }
+
+
