@@ -47,6 +47,7 @@ const float VARIATION_CHANGE_PERCENT = 0.2;
 
 // BUTTON
 const int BUTTON_PIN = 0; // change this 
+int last_button_state = LOW;
 
 // KEYPAD
 const byte ROWS = 4; //four rows
@@ -126,6 +127,16 @@ void loop() {
     handle_keypad_press(key);
   }
 
+  int reading = digitalRead(BUTTON_PIN);
+
+  if(reading != last_button_state) {
+    if(reading == HIGH) {
+      handle_button_press();
+    }
+  }
+
+  last_button_state = reading;
+
   if ((current_millis / 1000) % 2 == 0) {
     digitalWrite(LED_BUILTIN, HIGH);
   } else {
@@ -133,10 +144,8 @@ void loop() {
   }
 
   if (WiFi.status() == WL_CONNECTED) {
-    Serial.println("WiFi connected!");
-    // getSymbolPrice();
-    getHistoricPrice();
-    delay(5000);
+    
+    
   }
 
 }
@@ -296,6 +305,7 @@ void handle_keypad_press(char key) {
   } else if (key == '>') {
     handle_more_timeframe();
   } else if (key == '#') {
+    HISTORY_MODE = true;
     handle_change_timeframe_interval();
   } else {
     int num;
@@ -326,5 +336,15 @@ void handle_change_timeframe_interval() {
     TIMEFRAME_PERIOD = "y";
   } else if (strcmp(TIMEFRAME_PERIOD, "y") == 0) {
     TIMEFRAME_PERIOD = "d";
+  }
+}
+
+// Button
+
+void handle_button_press() {
+  if(HISTORY_MODE == true) {
+    getHistoricPrice();
+  } else {
+    refresh_prices();
   }
 }
