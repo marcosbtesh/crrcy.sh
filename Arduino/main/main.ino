@@ -246,3 +246,21 @@ void handle_keypad_press(char key) {
 
 
 }
+
+
+
+// Timeframes
+
+
+void handle_less_timeframe() {
+
+}
+
+
+void handle_more_timeframe() {
+
+}
+
+void handle_change_timeframe_interval() {
+
+}
