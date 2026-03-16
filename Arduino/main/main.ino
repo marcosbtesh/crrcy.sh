@@ -244,11 +244,7 @@ void handle_keypad_press(char key) {
     int num = key - '0';
     SELECTED_SYMBOL = SYMBOLS[num];
   }
-
-
 }
-
-
 
 // Timeframes
 
