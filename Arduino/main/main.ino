@@ -39,14 +39,14 @@ float current_max = 0.0;
 float current_price = 0.0;
 
 // LED's 
-const int LED_GREEN_PIN = 21;
-const int LED_YELLOW_PIN = 22;
+const int LED_GREEN_PIN = 18;
+const int LED_YELLOW_PIN = 19;
 const int LED_RED_PIN = 23;
 
 const float VARIATION_CHANGE_PERCENT = 0.2;
 
 // BUTTON
-const int BUTTON_PIN = 27; // Or 32
+const int BUTTON_PIN = 32;
 int last_button_state = LOW;
 
 // KEYPAD
@@ -80,17 +80,8 @@ char keys[ROWS][COLS] = {
   } // D=13
 };
 
-byte rowPins[ROWS] = {
-  5,
-  4,
-  3,
-  2
-}; //connect to the row pinouts of the keypad
-byte colPins[COLS] = {
-  8,
-  7,
-  6
-}; //connect to the column pinouts of the keypad
+byte rowPins[ROWS] = { 13, 12, 14, 27 };
+byte colPins[COLS] = { 26, 25, 33, 32 };
 
 Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 
@@ -99,10 +90,12 @@ const char * TIMEFRAME_PERIOD = "d"; // "d", "m" or "y"
 int TIMEFRAME_VALUE = 7;
 
 bool HISTORY_MODE = false;
+bool needs_refresh = true;
 
 void setup() {
 
   Serial.begin(115200);
+  run_circuit_test();
 
   WiFi.mode(WIFI_STA);
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
@@ -148,6 +141,16 @@ void loop() {
   }
 
   last_button_state = reading;
+
+  if (needs_refresh) {
+    if (HISTORY_MODE) {
+      getHistoricPrice();
+    } else {
+      refresh_prices();
+    }
+    needs_refresh = false;
+  }
+
   render_lcd();
 }
 
@@ -316,6 +319,7 @@ void handle_keypad_press(char key) {
   } else if (key == '#') {
     HISTORY_MODE = true;
     handle_change_timeframe_interval();
+    needs_refresh = true;
   } else {
     int num;
     if (key >= '1' && key <= '9') num = key - '1';
@@ -357,4 +361,110 @@ void handle_button_press() {
     HISTORY_MODE = false;
     refresh_prices();
   }
+  needs_refresh = false;
+}
+
+// Test
+
+void run_circuit_test() {
+  Serial.println("=== CIRCUIT TEST START ===");
+
+  Serial.println("[LCD] Testing display...");
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("LCD TEST LINE 1");
+  lcd.setCursor(0, 1);
+  lcd.print("LCD TEST LINE 2");
+  delay(2000);
+
+  Serial.println("[LED] Testing GREEN...");
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("LED: GREEN");
+  digitalWrite(LED_GREEN_PIN, HIGH);
+  delay(1000);
+  digitalWrite(LED_GREEN_PIN, LOW);
+
+  Serial.println("[LED] Testing YELLOW...");
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("LED: YELLOW");
+  digitalWrite(LED_YELLOW_PIN, HIGH);
+  delay(1000);
+  digitalWrite(LED_YELLOW_PIN, LOW);
+
+  Serial.println("[LED] Testing RED...");
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("LED: RED");
+  digitalWrite(LED_RED_PIN, HIGH);
+  delay(1000);
+  digitalWrite(LED_RED_PIN, LOW);
+
+  Serial.println("[BUTTON] Press the button within 5 seconds...");
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Press button!");
+  lcd.setCursor(0, 1);
+  lcd.print("(5 sec timeout)");
+  unsigned long btn_start = millis();
+  bool btn_detected = false;
+  int last_test_btn_state = LOW;
+  while (millis() - btn_start < 5000) {
+    int btn_reading = digitalRead(BUTTON_PIN);
+    if (btn_reading == HIGH && last_test_btn_state == LOW) {
+      btn_detected = true;
+      Serial.println("[BUTTON] Button press detected!");
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Button OK!");
+      delay(1000);
+      break;
+    }
+    last_test_btn_state = btn_reading;
+  }
+  if (!btn_detected) {
+    Serial.println("[BUTTON] No press detected (timeout).");
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Button TIMEOUT");
+    delay(1000);
+  }
+
+  Serial.println("[KEYPAD] Press any key within 5 seconds...");
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Press any key!");
+  lcd.setCursor(0, 1);
+  lcd.print("(5 sec timeout)");
+  unsigned long kp_start = millis();
+  bool key_detected = false;
+  while (millis() - kp_start < 5000) {
+    char test_key = keypad.getKey();
+    if (test_key) {
+      key_detected = true;
+      Serial.print("[KEYPAD] Key detected: ");
+      Serial.println(test_key);
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Key pressed:");
+      lcd.setCursor(0, 1);
+      lcd.print(test_key);
+      delay(1000);
+      break;
+    }
+  }
+  if (!key_detected) {
+    Serial.println("[KEYPAD] No key detected (timeout).");
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Keypad TIMEOUT");
+    delay(1000);
+  }
+
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("TEST COMPLETE");
+  Serial.println("=== CIRCUIT TEST END ===");
+  delay(2000);
 }
