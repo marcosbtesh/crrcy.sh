@@ -261,15 +261,15 @@ void handleLedsHistoricPrices(double min, double max) {
   digitalWrite(LED_YELLOW_PIN, LOW);
   digitalWrite(LED_RED_PIN, LOW);
 
-  if (change < -VARIATION_CHANGE_PERCENT) {
+  if (change > VARIATION_CHANGE_PERCENT) {
     digitalWrite(LED_GREEN_PIN, HIGH);
-  } else if (change > VARIATION_CHANGE_PERCENT) {
+  } else if (change < -VARIATION_CHANGE_PERCENT) {
     digitalWrite(LED_RED_PIN, HIGH);
   } else {
     digitalWrite(LED_YELLOW_PIN, HIGH);
   }
-
 }
+
 // Utility Methods
 double _calculateChangeMinMax(double min, double max) {
   return ((max - min) / min) * 100.0;
