@@ -34,9 +34,9 @@ const char * SELECTED_SYMBOL = SYMBOLS[0];
 
 const char * BASE_CURRENCY = "USD";
 
-float current_min = 0.0;
-float current_max = 0.0;
-float current_price = 0.0;
+double current_min = 0.0;
+double current_max = 0.0;
+double current_price = 0.0;
 
 // LED's 
 const int LED_GREEN_PIN = 18;
@@ -223,7 +223,7 @@ JsonDocument handleRequest(const char * endpoint) {
 // Historic Prices
 void getHistoricPrice() {
   char endpoint[64];
-  snprintf(endpoint, sizeof(endpoint), "hist/%s/%s/%s%d", BASE_CURRENCY, SELECTED_SYMBOL, TIMEFRAME_PERIOD, TIMEFRAME_VALUE);
+  snprintf(endpoint, sizeof(endpoint), "hist/%s/%s/%d%s", BASE_CURRENCY, SELECTED_SYMBOL, TIMEFRAME_VALUE, TIMEFRAME_PERIOD);
   JsonDocument response = handleRequest(endpoint);
 
   if (response.isNull()) {
@@ -231,13 +231,13 @@ void getHistoricPrice() {
     return;
   }
 
-  float price_min = FLT_MAX;
-  float price_max = -FLT_MAX;
+  double price_min = DBL_MAX;
+  double price_max = -DBL_MAX;
 
   JsonObject prices = response["data"][SELECTED_SYMBOL];
 
   for (JsonPair kv: prices) {
-    float value = kv.value()["value"];
+    double value = kv.value()["value"];
     if (value < price_min) price_min = value;
     if (value > price_max) price_max = value;
   }
@@ -252,7 +252,7 @@ void getHistoricPrice() {
   handleLedsHistoricPrices(price_min, price_max);
 }
 
-void handleLedsHistoricPrices(float min, float max) {
+void handleLedsHistoricPrices(double min, double max) {
 
   int change = _calculateChangeMinMax(min, max);
 
@@ -267,7 +267,7 @@ void handleLedsHistoricPrices(float min, float max) {
 }
 
 // Utility Methods
-float _calculateChangeMinMax(float min, float max) {
+double _calculateChangeMinMax(double min, double max) {
   return ((max - min) / min) * 100.0;
 }
 
