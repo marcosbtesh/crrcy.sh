@@ -46,7 +46,8 @@ const int LED_RED_PIN = 23;
 const float VARIATION_CHANGE_PERCENT = 0.2;
 
 unsigned long last_lcd_render = 0;
-
+char last_top[17] = "";
+char last_bottom[17] = "";
 
 // BUTTON
 const int BUTTON_PIN = 4;
@@ -254,7 +255,11 @@ void getHistoricPrice() {
 
 void handleLedsHistoricPrices(double min, double max) {
 
-  int change = _calculateChangeMinMax(min, max);
+  double change = _calculateChangeMinMax(min, max);
+
+  digitalWrite(LED_GREEN_PIN, LOW);
+  digitalWrite(LED_YELLOW_PIN, LOW);
+  digitalWrite(LED_RED_PIN, LOW);
 
   if (change < -VARIATION_CHANGE_PERCENT) {
     digitalWrite(LED_GREEN_PIN, HIGH);
@@ -265,15 +270,13 @@ void handleLedsHistoricPrices(double min, double max) {
   }
 
 }
-
 // Utility Methods
 double _calculateChangeMinMax(double min, double max) {
   return ((max - min) / min) * 100.0;
 }
 
 // LCD
-char last_top[17] = "";
-char last_bottom[17] = "";
+
 
 void render_lcd() {
   if (millis() - last_lcd_render < 500) return;
@@ -341,13 +344,18 @@ void handle_keypad_press(char key) {
   } else if (key == '#') {
     HISTORY_MODE = true;
     handle_change_timeframe_interval();
+  } else if (key == 'D') {
+    HISTORY_MODE = false;
+    digitalWrite(LED_GREEN_PIN, LOW);
+    digitalWrite(LED_YELLOW_PIN, LOW);
+    digitalWrite(LED_RED_PIN, LOW);
+    needs_refresh = true;
   } else {
     int num;
     if (key >= '1' && key <= '9') num = key - '1';
     else if (key == 'A') num = 9;
     else if (key == 'B') num = 10;
     else if (key == 'C') num = 11;
-    else if (key == 'D') num = 12;
     else return;
     SELECTED_SYMBOL = SYMBOLS[num];
   }
