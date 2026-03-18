@@ -45,8 +45,11 @@ const int LED_RED_PIN = 23;
 
 const float VARIATION_CHANGE_PERCENT = 0.2;
 
+unsigned long last_lcd_render = 0;
+
+
 // BUTTON
-const int BUTTON_PIN = 32;
+const int BUTTON_PIN = 4;
 int last_button_state = LOW;
 
 // KEYPAD
@@ -75,8 +78,8 @@ char keys[ROWS][COLS] = {
   {
     'D',
     '<',
-    '#',
-    '>'
+    '>',
+    '#'
   } // D=13
 };
 
@@ -95,7 +98,10 @@ bool needs_refresh = true;
 void setup() {
 
   Serial.begin(115200);
-  run_circuit_test();
+  delay(500);  // give Serial time to stabilize
+  lcd.begin();  // ← add this
+
+  // run_circuit_test();
 
   WiFi.mode(WIFI_STA);
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
@@ -105,8 +111,9 @@ void setup() {
   pinMode(LED_GREEN_PIN, OUTPUT);
   pinMode(LED_YELLOW_PIN, OUTPUT);
   pinMode(LED_RED_PIN, OUTPUT);
+  
 
-  pinMode(BUTTON_PIN, INPUT_PULLDOWN);
+  pinMode(BUTTON_PIN, INPUT_PULLUP);
 
 }
 
@@ -120,10 +127,16 @@ void loop() {
     digitalWrite(LED_BUILTIN, LOW);
   }
 
+
   if (WiFi.status() != WL_CONNECTED) {
     render_lcd_wifi_not_connected();
+    WiFi.disconnect();
+    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+    unsigned long wifi_start = millis();
+    while (WiFi.status() != WL_CONNECTED && millis() - wifi_start < 10000) {
+      delay(500);
+    }
     return;
-
   }
 
   char key = keypad.getKey();
@@ -134,8 +147,8 @@ void loop() {
 
   int reading = digitalRead(BUTTON_PIN);
 
-  if (reading != last_button_state) {
-    if (reading == HIGH) {
+ if (reading != last_button_state) {
+    if (reading == LOW) { 
       handle_button_press();
     }
   }
@@ -211,7 +224,6 @@ JsonDocument handleRequest(const char * endpoint) {
 void getHistoricPrice() {
   char endpoint[64];
   snprintf(endpoint, sizeof(endpoint), "hist/%s/%s/%s%d", BASE_CURRENCY, SELECTED_SYMBOL, TIMEFRAME_PERIOD, TIMEFRAME_VALUE);
-
   JsonDocument response = handleRequest(endpoint);
 
   if (response.isNull()) {
@@ -260,52 +272,62 @@ float _calculateChangeMinMax(float min, float max) {
 }
 
 // LCD
+char last_top[17] = "";
+char last_bottom[17] = "";
+
 void render_lcd() {
+  if (millis() - last_lcd_render < 500) return;
+  last_lcd_render = millis();
   render_lcd_top();
   render_lcd_bottom();
 }
 
-
 void render_lcd_wifi_not_connected() {
   lcd.clear();
-  lcd.setCursor(0,0);
-
-  lcd.print("WiFi Not Connected! Trying to connect!");
+  lcd.setCursor(0, 0);
+  lcd.print("WiFi Not");
+  lcd.setCursor(0, 1);
+  lcd.print("Connected...");
+  memset(last_top, 0, sizeof(last_top));
+  memset(last_bottom, 0, sizeof(last_bottom));
 }
 
 void render_lcd_top() {
-  lcd.clear();
-  lcd.setCursor(0, 0);
+  char top[17];
 
   if (HISTORY_MODE == true) {
     // Historic mode: show symbol + timeframe range
     // e.g. "BTC 7d" or "ETH 3m"
-    char top[17];
     snprintf(top, sizeof(top), "%-4s LAST %2d%s", SELECTED_SYMBOL, TIMEFRAME_VALUE, TIMEFRAME_PERIOD);
-    lcd.print(top);
   } else {
     // Normal mode: just show symbol + base currency
-    char top[17];
     snprintf(top, sizeof(top), "%-4s / %s", SELECTED_SYMBOL, BASE_CURRENCY);
+  }
+
+  if (strcmp(top, last_top) != 0) {
+    lcd.setCursor(0, 0);
     lcd.print(top);
+    strncpy(last_top, top, sizeof(last_top));
   }
 }
 
 void render_lcd_bottom() {
-  lcd.setCursor(0, 1);
+  char bottom[17];
 
   if (HISTORY_MODE == true) {
     // Historic mode: show min and max
-    // e.g. "L:1200.5 H:1350.2"
-    char bottom[17];
-    snprintf(bottom, sizeof(bottom), "L:%-7.1f H:%.1f", current_min, current_max);
-    lcd.print(bottom);
+    // e.g. "L:1200.50 H:1350.20"
+    snprintf(bottom, sizeof(bottom), "L:%.2f H:%.2f", current_min, current_max);
   } else {
     // Normal mode: show current price
     // e.g. "Price: 1285.30"
-    char bottom[17];
     snprintf(bottom, sizeof(bottom), "Price:%-10.2f", current_price);
+  }
+
+  if (strcmp(bottom, last_bottom) != 0) {
+    lcd.setCursor(0, 1);
     lcd.print(bottom);
+    strncpy(last_bottom, bottom, sizeof(last_bottom));
   }
 }
 
@@ -319,7 +341,6 @@ void handle_keypad_press(char key) {
   } else if (key == '#') {
     HISTORY_MODE = true;
     handle_change_timeframe_interval();
-    needs_refresh = true;
   } else {
     int num;
     if (key >= '1' && key <= '9') num = key - '1';
@@ -336,6 +357,7 @@ void handle_keypad_press(char key) {
 
 void handle_less_timeframe() {
   TIMEFRAME_VALUE = TIMEFRAME_VALUE - 1;
+
 }
 
 void handle_more_timeframe() {
@@ -360,6 +382,8 @@ void handle_button_press() {
   } else {
     HISTORY_MODE = false;
     refresh_prices();
+    
+
   }
   needs_refresh = false;
 }
@@ -412,7 +436,7 @@ void run_circuit_test() {
   int last_test_btn_state = LOW;
   while (millis() - btn_start < 5000) {
     int btn_reading = digitalRead(BUTTON_PIN);
-    if (btn_reading == HIGH && last_test_btn_state == LOW) {
+    if (btn_reading == LOW && last_test_btn_state == HIGH) {
       btn_detected = true;
       Serial.println("[BUTTON] Button press detected!");
       lcd.clear();
@@ -467,4 +491,5 @@ void run_circuit_test() {
   lcd.print("TEST COMPLETE");
   Serial.println("=== CIRCUIT TEST END ===");
   delay(2000);
+  
 }
